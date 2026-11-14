@@ -29,7 +29,7 @@ st.subheader("Burning Activity Calendar")
 
 fig = px.imshow(
   colors,
-  color_continuous_scale="Inferno_r",
+  color_continuous_scale="YlOrRd",
   labels={"x": "Month", "y": "Year", "color": "Hot Spots"},
  aspect="auto",
 )
