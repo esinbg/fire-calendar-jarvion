@@ -19,7 +19,7 @@ df = df.sort_values(["year", "month"]).reset_index(drop=True)
 complete = df[~df["note"].str.contains("Partial", case=False)]
 default = complete.iloc[-1]
 
-REGIONS = ["All of Türkiye", "Marmara", "Black Sea", "Central Anatolia",
+REGIONS = ["Türkiye", "Marmara", "Black Sea", "Central Anatolia",
            "Eastern Anatolia", "Southeastern Anatolia", "Mediterranean", "Aegean"]
 YEARS = sorted(df["year"].unique(), reverse=True)
 
