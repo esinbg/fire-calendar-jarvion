@@ -223,9 +223,12 @@ else:
 # ---------- 6. Calendar ----------
 st.subheader("Burning activity calendar")
 
+y_min, y_max = int(df["year"].min()), int(df["year"].max())
+start_year, end_year = st.slider("Years", y_min, y_max, (y_min, y_max))
+cal_data = monthly[(monthly["year"] >= start_year) & (monthly["year"] <= end_year)]
 
 def grid(column):
-    t = monthly.pivot(index="year", columns="month", values=column)
+    t = cal_data.pivot(index="year", columns="month", values=column)
     return t.reindex(columns=range(1, 13))
 
 
@@ -278,4 +281,4 @@ fig.update_layout(
 with st.container(key="calendar"):
     st.plotly_chart(fig, theme=None)
 
-st.caption(f"{region}. Colour uses a square-root scale. Grey cells have no data.")
+st.caption(f"{region}, {start_year}-{end_year}. Colour uses a square-root scale. Grey cells have no data.") 
