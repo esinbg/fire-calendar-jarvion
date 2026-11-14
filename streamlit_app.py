@@ -266,8 +266,6 @@ def info_card(value, title, text, badge="", badge_color="#FF6B6B"):
             f"</div>",
             unsafe_allow_html=True,
         )
-        text_col.markdown(text)
-
 
 with info_left:
     st.subheader("Selected month vs. other years")
