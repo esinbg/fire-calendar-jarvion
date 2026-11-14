@@ -246,6 +246,25 @@ st.divider()
 info_left, info_right = st.columns(2, gap="large")
 
 # ---------- 6. Selected month vs. other years (left) ----------
+def info_card(value, title, text, badge="", badge_color="#FF6B6B"):
+    """A box with a big number on the left and its explanation on the right."""
+    with st.container(border=True):
+        num_col, text_col = st.columns([2, 3], vertical_alignment="center")
+        badge_html = ""
+        if badge:
+            badge_html = (
+                f"<div style='display: inline-block; margin-top: 6px; padding: 2px 10px; "
+                f"border-radius: 12px; background: {badge_color}33; color: {badge_color}; "
+                f"font-size: 0.95rem;'>{badge}</div>"
+            )
+        num_col.markdown(
+            f"<div style='font-size: 2.6rem; font-weight: 600; line-height: 1.1;'>{value}</div>"
+            f"{badge_html}",
+            unsafe_allow_html=True,
+        )
+        text_col.markdown(f"**{title}**  \n{text}")
+
+
 with info_left:
     st.subheader("Selected month vs. other years")
 
@@ -258,42 +277,52 @@ with info_left:
         st.info("No data for this month.")
     else:
         current = row["hotspots"].iloc[0]
-        m1, m2, m3 = st.columns(3)
+
+        # Card 1: the selected month
+        badge, badge_color = "", "#FF6B6B"
         if median > 0:
             change = (current - median) / median * 100
-            m1.metric(f"{month_name} {sel_year}", f"{current:,.0f}", f"{change:+.0f}% vs. median", delta_color="inverse", border=True)
-        else:
-            m1.metric(f"{month_name} {sel_year}", f"{current:,.0f}", border=True)
-        m2.metric(f"Median of other years ({month_name})", f"{median:,.0f}", border=True)
-        m3.metric("Confidence", row["confidence"].iloc[0].capitalize(), border=True)
-        m1.caption(
-            f"Hot spots detected in {region} in {month_name} {sel_year} "
-            f"(VIIRS-equivalent). The percentage compares it with the median."
+            badge = f"{change:+.0f}% vs. median"
+            badge_color = "#FF6B6B" if change > 0 else "#66BB6A"
+        extra = ". ".join(t for t in [row["range_text"].iloc[0], row["note"].iloc[0]] if t)
+        info_card(
+            f"{current:,.0f}",
+            f"{month_name} {sel_year}",
+            f"Hot spots detected in {region} in this month (VIIRS-equivalent). "
+            f"The percentage compares it with the median of other years."
+            + (f" {extra}." if extra else ""),
+            badge,
+            badge_color,
         )
-        m2.caption(
-            f"A typical {month_name}: the middle value of {month_name} "
-            f"across the other {others['hotspots'].count()} years."
-        )
-        m3.caption(
-            "How reliable this number is. High: measured by VIIRS. "
-            "Medium: converted from MODIS or near real-time. "
-            "Low: converted from early MODIS (one satellite only)."
-        )
-        details_text = ". ".join(t for t in [row["range_text"].iloc[0], row["note"].iloc[0]] if t)
-        if details_text:
-            st.caption(details_text)
 
-    # Change between two periods: average yearly hot spots
+        # Card 2: the median of the same month in other years
+        info_card(
+            f"{median:,.0f}",
+            f"Median of other years ({month_name})",
+            f"A typical {month_name}: the middle value of {month_name} "
+            f"across the other {others['hotspots'].count()} years.",
+        )
+
+        # Card 3: confidence
+        info_card(
+            row["confidence"].iloc[0].capitalize(),
+            "Confidence",
+            "How reliable this number is. **High:** measured by VIIRS. "
+            "**Medium:** converted from MODIS or near real-time. "
+            "**Low:** converted from early MODIS (one satellite only).",
+        )
+
+    # Card 4: change between two periods (average yearly hot spots)
     yearly_total = monthly.groupby("year")["hotspots"].sum()
     early = yearly_total.loc[2003:2011].mean()
     late = yearly_total.loc[2017:2025].mean()
     if early > 0:
         period_change = (late - early) / early * 100
-        st.metric(
-            "Average yearly hot spots, 2017-2025 vs. 2003-2011",
+        info_card(
             f"{period_change:+.0f}%",
-            help=f"2003-2011: {early:,.0f} per year. 2017-2025: {late:,.0f} per year.",
-            border=True,
+            "2017-2025 vs. 2003-2011",
+            f"Change in average yearly hot spots in {region}: "
+            f"{early:,.0f} per year in 2003-2011, {late:,.0f} per year in 2017-2025.",
         )
 
 # ---------- 7. Season profile (right) ----------
