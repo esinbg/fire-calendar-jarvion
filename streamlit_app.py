@@ -22,14 +22,15 @@ fig = px.imshow(
   colors,
   color_continuous_scale="Inferno",
   labels={"x": "Month", "y": "Year", "color": "Hot Spots"},
-  aspect="auto",
+ aspect="auto",
+)
 fig.update_coloraxes(
   colorbar={
     "title": "Hot Spots",
     "tickvals": [0, 1, 2, 3, 4],
     "ticktext": ["1", "10", "100", "1,000", "10,000"],
   }
-))
+)
 fig.update_yaxes(dtick=1)
 fig.update_layout(height=750)
 
