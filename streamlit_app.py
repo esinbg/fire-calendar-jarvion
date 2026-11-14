@@ -3,10 +3,10 @@ import pandas as pd
 import plotly.express as px
 import numpy as np 
 
-st.set_page_config(page_title="Türkiye Fire Activity Calendar", page_icon="🔥", layout="wide")
+st.set_page_config(page_title="Türkiye Burning Activity Calendar", page_icon="🔥", layout="wide")
 
-st.title("Türkiye Fire Activity Calendar")
-st.write("Harmonized MODIS and VIIRS hot spots, 2000-2026.")
+st.title("Türkiye Burning Activity Calendar")
+st.caption("Harmonized MODIS and VIIRS hot spots, 2000-2026.")
 
 df = pd.read_csv("calendar_turkey.csv")
 df["note"] = df["note"].fillna("") 
@@ -24,8 +24,6 @@ def grid(column):
 details = np.dstack(
   [grid(c) for c in ["hotspots", "lower", "upper", "confidence", "source", "note"]]
 )
-
-st.subheader("Burning Activity Calendar")
 
 fig = px.imshow(
   colors,
