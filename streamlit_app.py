@@ -13,6 +13,7 @@ st.caption("Harmonized MODIS and VIIRS hot spots, 2000-2026.")
 
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 ALL = "All of Türkiye"
+CUSTOM = "Custom area (lat/lon)"
 CHART_HEIGHT = 560
 CARD_HEIGHT = 230
 
@@ -49,7 +50,7 @@ check_columns(grid_df, GRID_COLUMNS, "grid_turkey.csv")
 
 # Repeated rows would crash the calendar: keep the first one
 df = df.drop_duplicates(subset=["year", "month"], keep="first")
-grid_df = grid_df.drop_duplicates(subset=["year", "month", "lat", "lon"], keep="first")
+grid_df = grid_df.drop_duplicates(subset=["year", "month", "lat", "lon", "province"], keep="first")
 
 df["note"] = df["note"].fillna("")
 df = df.sort_values(["year", "month"]).reset_index(drop=True)
@@ -63,7 +64,7 @@ STEP = round(float(np.diff(np.sort(grid_df["lat"].unique())).min()), 3)
 # Default selection: the newest complete month
 default = df[df["complete"]].iloc[-1]
 
-REGIONS = [ALL] + sorted(grid_df["region"].unique())
+REGIONS = [ALL] + sorted(grid_df["region"].unique()) + [CUSTOM]
 YEARS = sorted(df["year"].unique(), reverse=True)
 
 st.write(
@@ -82,6 +83,17 @@ with left_col:
     month_name = c2.selectbox("Month", MONTHS, index=int(default["month"]) - 1)
     sel_month = MONTHS.index(month_name) + 1
 
+    if region == CUSTOM:
+        st.caption("Enter the edges of a box in decimal degrees (Türkiye: about 36-42 N, 26-45 E).")
+        b1, b2, b3, b4 = st.columns(4)
+        south = b1.number_input("South (lat)", 35.0, 43.0, 36.5, 0.1, format="%.1f")
+        north = b2.number_input("North (lat)", 35.0, 43.0, 37.5, 0.1, format="%.1f")
+        west = b3.number_input("West (lon)", 25.0, 46.0, 30.0, 0.1, format="%.1f")
+        east = b4.number_input("East (lon)", 25.0, 46.0, 32.0, 0.1, format="%.1f")
+        if south >= north or west >= east:
+            st.error("North must be bigger than South, and East bigger than West.")
+            st.stop()
+
 with right_col:
     y_min, y_max = int(df["year"].min()), int(df["year"].max())
     start_year, end_year = st.slider(
@@ -94,7 +106,14 @@ if region == ALL:
     monthly = df.copy()
     region_cells = grid_df
 else:
-    region_cells = grid_df[grid_df["region"] == region]
+    if region == CUSTOM:
+        # Grid cells whose south-west corner is inside the box
+        region_cells = grid_df[
+            (grid_df["lat"] >= south) & (grid_df["lat"] < north)
+            & (grid_df["lon"] >= west) & (grid_df["lon"] < east)
+        ]
+    else:
+        region_cells = grid_df[grid_df["region"] == region]
     sums = region_cells.groupby(["year", "month"], as_index=False)["hotspots"].sum()
     monthly = df[["year", "month", "source", "confidence", "note",
                   "days_with_data", "days_in_month", "complete"]].merge(
@@ -109,6 +128,12 @@ else:
     yearly = monthly.groupby("year")["hotspots"].sum()
     if yearly.median() < 300:
         st.warning("Small area: estimates are less reliable.")
+
+# Name used in texts on the page
+if region == CUSTOM:
+    place = f"the box {south:.1f}-{north:.1f}°N, {west:.1f}-{east:.1f}°E"
+else:
+    place = region
 
 # Range text: empty when lower and upper are the same number
 monthly["range_text"] = [
@@ -133,9 +158,12 @@ with left_col:
         center = {"lat": 39.0, "lon": 35.3}
         zoom = 4.3
     else:
-        # Fit the whole region on the map: centre of its outer edges, zoom from its size
-        lat_min, lat_max = region_cells["lat"].min(), region_cells["lat"].max() + STEP
-        lon_min, lon_max = region_cells["lon"].min(), region_cells["lon"].max() + STEP
+        # Fit the whole area on the map: centre of its outer edges, zoom from its size
+        if region == CUSTOM:
+            lat_min, lat_max, lon_min, lon_max = south, north, west, east
+        else:
+            lat_min, lat_max = region_cells["lat"].min(), region_cells["lat"].max() + STEP
+            lon_min, lon_max = region_cells["lon"].min(), region_cells["lon"].max() + STEP
         center = {"lat": (lat_min + lat_max) / 2, "lon": (lon_min + lon_max) / 2}
         zoom_lon = np.log2(600 * 360 / (512 * (lon_max - lon_min)))
         zoom_lat = np.log2(450 * 360 / (512 * (lat_max - lat_min) * 1.3))
@@ -169,7 +197,16 @@ with left_col:
             {"sourcetype": "geojson", "source": regions_geo, "type": "line",
              "color": "#FFFFFF", "line": {"width": 1.2}},
         ]
-        if region != ALL:
+        if region == CUSTOM:
+            box = {"type": "Feature", "properties": {}, "geometry": {
+                "type": "Polygon",
+                "coordinates": [[[west, south], [east, south], [east, north],
+                                 [west, north], [west, south]]]}}
+            border_layers.append(
+                {"sourcetype": "geojson", "source": box, "type": "line",
+                 "color": "#FFD54F", "line": {"width": 3}}
+            )
+        elif region != ALL:
             selected = {"type": "FeatureCollection",
                         "features": [f for f in regions_geo["features"]
                                      if f["properties"]["region"] == region]}
@@ -198,6 +235,27 @@ with left_col:
         )
 
 # ---------- 5. Calendar (right) ----------
+def nice_top(value):
+    """Round up to a tidy number: 1, 2, 2.5 or 5 times a power of ten."""
+    value = max(float(value), 10)
+    power = 10 ** np.floor(np.log10(value))
+    for step in [1, 2, 2.5, 5, 10]:
+        if step * power >= value:
+            return int(step * power)
+
+
+def scale_ticks(top):
+    """Tick values for a square-root colour scale from 0 to top."""
+    ticks = [0]
+    for share in [0.02, 0.08, 0.2, 0.4, 0.6, 0.8, 1.0]:
+        v = int(nice_top(top * share)) if share < 1 else top
+        if v > ticks[-1] and np.sqrt(v) - np.sqrt(ticks[-1]) > 0.08 * np.sqrt(top) and v <= top:
+            ticks.append(v)
+    if ticks[-1] != top:
+        ticks.append(top)
+    return ticks
+
+
 cal_data = monthly[(monthly["year"] >= start_year) & (monthly["year"] <= end_year)]
 
 
@@ -237,14 +295,21 @@ with right_col:
         ),
     )
 
-    # Fixed colour scale: the same colours mean the same numbers in every region
-    CAL_TICKS = [0, 500, 2000, 5000, 10000, 15000, 20000, 25000]
+    # Colour scale: fixed 0-25,000 for all of Türkiye; fitted to the area otherwise
+    if region == ALL:
+        top = 25000
+    else:
+        top = nice_top(monthly["hotspots"].max())
+    ticks = scale_ticks(top)
+    labels = [f"{v:,}" for v in ticks]
+    if region == ALL and table.max().max() > top:
+        labels[-1] = labels[-1] + "+"
     fig.update_coloraxes(
         cmin=0,
-        cmax=np.sqrt(25000),
+        cmax=np.sqrt(top),
         colorbar={"title": "Hot Spots",
-                  "tickvals": [np.sqrt(v) for v in CAL_TICKS],
-                  "ticktext": [f"{v:,}" for v in CAL_TICKS[:-1]] + [f"{CAL_TICKS[-1]:,}+"]},
+                  "tickvals": [np.sqrt(v) for v in ticks],
+                  "ticktext": labels},
     )
 
     fig.update_xaxes(showgrid=False)
@@ -259,13 +324,15 @@ with right_col:
     )
 
     st.plotly_chart(fig, theme=None)
-    st.caption(f"{region}. Colour uses a square-root scale. Grey cells have no data.")
+    scale_note = ("Fixed scale for all of Türkiye" if region == ALL
+                  else f"Scale fitted to this area (0 to {top:,})")
+    st.caption(f"{place[0].upper() + place[1:]}. Colour uses a square-root scale. {scale_note}. Grey cells have no data.")
 
     csv_text = cal_data[["year", "month", "hotspots", "lower", "upper", "source", "confidence", "note", "days_with_data", "days_in_month"]].to_csv(index=False)
     st.download_button(
         label=f"Download {start_year}-{end_year} data (CSV)",
         data=csv_text,
-        file_name=f"burning_activity_{region.replace(' ', '_')}_{start_year}-{end_year}.csv",
+        file_name=f"burning_activity_{'custom_area' if region == CUSTOM else region.replace(' ', '_')}_{start_year}-{end_year}.csv",
         mime="text/csv",
     )
 
@@ -352,7 +419,7 @@ with info_left:
                 info_card(
                     f"{current:,.0f}",
                     f"{month_name} {sel_year}",
-                    f"Hot spots in {region} in this month (VIIRS-equivalent), "
+                    f"Hot spots in {place} in this month (VIIRS-equivalent), "
                     f"compared with the median of other years."
                     + (f" {extra}." if extra else ""),
                     badge,
@@ -389,7 +456,7 @@ with info_left:
                         f"{early_now:,.0f}",
                         f"{month_name} 1-{days}, {sel_year}",
                         f"Partial month: {days} of {days_total} days. Hot spots in the "
-                        f"first {days} days of {full_name} {sel_year} in {region}, compared "
+                        f"first {days} days of {full_name} {sel_year} in {place}, compared "
                         f"with the same {days} days in other years.",
                         badge,
                         badge_color,
@@ -425,7 +492,7 @@ with info_left:
             info_card(
                 f"{period_change:+.0f}%",
                 "2017-2025 vs. 2003-2011",
-                f"Change in average yearly hot spots in {region}: "
+                f"Change in average yearly hot spots in {place}: "
                 f"{early:,.0f} per year in 2003-2011, {late:,.0f} per year in 2017-2025 "
                 f"({len(early_years) + len(late_years)} complete years).",
             )
@@ -434,7 +501,7 @@ with info_left:
 with info_right:
     st.subheader(f"Season profile: {sel_year}")
     st.caption(
-        f"How each month of {sel_year} (white line) compares with a normal year in {region}. "
+        f"How each month of {sel_year} (white line) compares with a normal year in {place}. "
         "Orange dashed line: the median of the other years. Shaded band: the range where "
         "80% of the other years fall. A white point above the band means an unusually active month."
     )
@@ -511,4 +578,3 @@ with st.expander("Method"):
         "month-specific factors derived from the 14-year overlap (2012-2025). "
         "Leave-one-year-out validation: 13% monthly error, 4% yearly error."
     )
-
