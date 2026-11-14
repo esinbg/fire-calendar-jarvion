@@ -177,8 +177,13 @@ else:
              "color": "#FFD54F", "line": {"width": 3}}
         )
     fig_map.update_layout(map={"layers": border_layers})
-    log_colorbar(fig_map, cells["hotspots"].min(), cells["hotspots"].max())
-    fig_map.update_layout(
+    ###### Fixed colour scale for the map: 1 to 1,000 hot spots per cell
+    fig_map.update_coloraxes(
+        cmin=0,
+        cmax=3,
+        colorbar={"title": "Hot Spots", "tickvals": [0, 1, 2, 3],
+                  "ticktext": ["1", "10", "100", "1,000+"]},
+    )    fig_map.update_layout(
         margin={"l": 0, "r": 0, "t": 0, "b": 0},
         paper_bgcolor="rgba(0,0,0,0)",
         font_color="#FAFAFA",
@@ -250,8 +255,15 @@ fig.update_traces(
     ),
 )
 
-sqrt_colorbar(fig, table.max().max())
-
+#### Fixed colour scale: the same colours mean the same numbers in every region
+CAL_TICKS = [0, 500, 2000, 5000, 10000, 20000]
+fig.update_coloraxes(
+    cmin=0,
+    cmax=np.sqrt(20000),
+    colorbar={"title": "Hot Spots",
+              "tickvals": [np.sqrt(v) for v in CAL_TICKS],
+              "ticktext": [f"{v:,}" for v in CAL_TICKS]},
+)
 fig.update_xaxes(showgrid=False)
 fig.update_yaxes(dtick=1, showgrid=False)
 
