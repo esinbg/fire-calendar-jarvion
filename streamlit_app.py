@@ -83,7 +83,7 @@ df, grid_df, regions_geo = load_data(
 )
 
 # Size of one grid cell in degrees (0.5 now; works if the grid gets finer)
-STEP = float(np.diff(np.sort(grid_df["lat"].unique())).min())
+STEP = round(float(np.diff(np.sort(grid_df["lat"].unique())).min()), 3)
 
 # Default selection: the newest month that is not a partial month
 complete = df[~df["note"].str.contains("Partial", case=False)]
@@ -137,8 +137,13 @@ if region == ALL:
     center = {"lat": 39.0, "lon": 35.3}
     zoom = 4.4
 else:
-    center = {"lat": region_cells["lat"].mean() + STEP / 2, "lon": region_cells["lon"].mean() + STEP / 2}
-    zoom = 5.8
+    # Fit the whole region on the map: centre of its outer edges, zoom from its size
+    lat_min, lat_max = region_cells["lat"].min(), region_cells["lat"].max() + STEP
+    lon_min, lon_max = region_cells["lon"].min(), region_cells["lon"].max() + STEP
+    center = {"lat": (lat_min + lat_max) / 2, "lon": (lon_min + lon_max) / 2}
+    zoom_lon = np.log2(600 * 360 / (512 * (lon_max - lon_min)))
+    zoom_lat = np.log2(450 * 360 / (512 * (lat_max - lat_min) * 1.3))
+    zoom = min(zoom_lon, zoom_lat) - 0.3
 
 if cells.empty:
     st.info("No hot spots on the map for this month.")
@@ -161,7 +166,7 @@ else:
         height=550,
         map_style="carto-darkmatter",
     )
-    fig_map.update_traces(marker={"size": max(3, STEP * 12), "opacity": 0.9})
+    fig_map.update_traces(marker={"size": max(4, STEP * 12), "opacity": 0.9})
 
     # Region borders: thin lines for all regions, thick line for the selected one
     border_layers = [
@@ -192,7 +197,7 @@ else:
 
     st.plotly_chart(fig_map, theme=None)
     st.caption(
-        f"Each dot is a {STEP}° x {STEP}° grid cell. White lines are region borders. "
+        f"Each dot is a {STEP:g}° x {STEP:g}° grid cell. White lines are region borders. "
         f"{len(cells):,} cells with hot spots in {month_name} {sel_year}."
     )
 
