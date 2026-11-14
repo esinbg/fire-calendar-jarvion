@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import numpy as np
 
-st.set_page_config(page_title="Türkiye Burning Activity Calendar", page_icon="🔥", layout="wide")
+st.set_page_config(page_title="Türkiye Burning Activity Calendar", page_icon="🔥")
 
 st.title("Türkiye Burning Activity Calendar")
 st.caption("Harmonized MODIS and VIIRS hot spots, 2000-2026.")
