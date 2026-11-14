@@ -29,7 +29,7 @@ fig.update_coloraxes(
     "tickvals": [0, 1, 2, 3, 4],
     "ticktext": ["1", "10", "100", "1,000", "10,000"],
   }
-)
+))
 fig.update_yaxes(dtick=1)
 fig.update_layout(height=750)
 
