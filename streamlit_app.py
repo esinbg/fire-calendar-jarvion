@@ -250,7 +250,7 @@ info_left, info_right = st.columns(2, gap="large")
 def info_card(value, title, text, badge="", badge_color="#FF6B6B"):
     """A box with the explanation on the left and the title + big number on the right."""
     with st.container(border=True, height=CARD_HEIGHT):
-        text_col, num_col = st.columns([1, 1], vertical_alignment="center", horizontal_alignment="center")
+        text_col, num_col = st.columns([1, 1], vertical_alignment="center")
         badge_html = ""
         if badge:
             badge_html = (
