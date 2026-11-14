@@ -6,64 +6,14 @@ import numpy as np
 import json
 import os
 
-st.set_page_config(page_title="Turkiye Burning Activity Calendar", page_icon="🔥")
+st.set_page_config(page_title="Türkiye Burning Activity Calendar", page_icon="🔥", layout="wide")
 
-st.markdown(
-    """
-    <style>
-    .st-key-calendar {
-        width: 92vw !important;
-        max-width: 92vw !important;
-        position: relative;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-st.title("Turkiye Burning Activity Calendar")
+st.title("Türkiye Burning Activity Calendar")
 st.caption("Harmonized MODIS and VIIRS hot spots, 2000-2026.")
 
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-ALL = "All of Turkiye"
-
-
-def log_colorbar(fig, low, high):
-    """Colour bar on a log scale, labelled with real numbers from min to max."""
-    low = max(low, 1)
-    low_log = np.log10(low)
-    high_log = np.log10(max(high, low))
-    ticks = [low_log]
-    labels = [f"{low:,.0f}"]
-    for p in range(0, 10):
-        if low_log + 0.15 < p < high_log - 0.15:
-            ticks.append(p)
-            labels.append(f"{10**p:,}")
-    ticks.append(high_log)
-    labels.append(f"{max(high, low):,.0f}")
-    fig.update_coloraxes(
-        cmin=low_log,
-        cmax=high_log,
-        colorbar={"title": "Hot Spots", "tickvals": ticks, "ticktext": labels},
-    )
-
-
-def sqrt_colorbar(fig, high):
-    """Colour bar on a square-root scale, labelled with real numbers."""
-    top = np.sqrt(max(high, 1))
-    ticks = [0]
-    labels = ["0"]
-    for v in [10, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000]:
-        if v <= high and np.sqrt(v) - ticks[-1] > 0.08 * top:
-            ticks.append(np.sqrt(v))
-            labels.append(f"{v:,}")
-    fig.update_coloraxes(
-        cmin=0,
-        cmax=top,
-        colorbar={"title": "Hot Spots", "tickvals": ticks, "ticktext": labels},
-    )
+ALL = "All of Türkiye"
+CHART_HEIGHT = 560
 
 
 # ---------- 1. Read the data ----------
@@ -83,7 +33,7 @@ df, grid_df, regions_geo = load_data(
     os.path.getmtime("calendar_turkey.csv"), os.path.getmtime("grid_turkey.csv")
 )
 
-# Size of one grid cell in degrees (0.5 now; works if the grid gets finer)
+# Size of one grid cell in degrees (works for 0.5 or 0.1 grids)
 STEP = round(float(np.diff(np.sort(grid_df["lat"].unique())).min()), 3)
 
 # Default selection: the newest month that is not a partial month
@@ -93,16 +43,28 @@ default = complete.iloc[-1]
 REGIONS = [ALL] + sorted(grid_df["region"].unique())
 YEARS = sorted(df["year"].unique(), reverse=True)
 
-# ---------- 2. Selection row ----------
 st.write(
     "Choose a region, a year and a month to see where satellites detected "
-    "fire hot spots, and how that month compares with other years."
+    "fire hot spots. Use the year range to set the years shown in the calendar."
 )
-c0, c1, c2 = st.columns(3)
-region = c0.selectbox("Region", REGIONS)
-sel_year = c1.selectbox("Year", YEARS, index=YEARS.index(default["year"]))
-month_name = c2.selectbox("Month", MONTHS, index=int(default["month"]) - 1)
-sel_month = MONTHS.index(month_name) + 1
+
+# Two columns: left = selectors + map, right = year range + calendar
+left_col, right_col = st.columns(2, gap="large")
+
+# ---------- 2. Selectors (left) and year range (right) ----------
+with left_col:
+    c0, c1, c2 = st.columns(3)
+    region = c0.selectbox("Region", REGIONS)
+    sel_year = c1.selectbox("Year", YEARS, index=YEARS.index(default["year"]))
+    month_name = c2.selectbox("Month", MONTHS, index=int(default["month"]) - 1)
+    sel_month = MONTHS.index(month_name) + 1
+
+with right_col:
+    y_min, y_max = int(df["year"].min()), int(df["year"].max())
+    start_year, end_year = st.slider(
+        "Calendar years: left handle = start year, right handle = end year",
+        y_min, y_max, (y_min, y_max),
+    )
 
 # ---------- 3. Monthly table for the selected region ----------
 if region == ALL:
@@ -131,95 +93,83 @@ monthly["range_text"] = [
 ]
 monthly["range_hover"] = [t + "<br>" if t else "" for t in monthly["range_text"]]
 
-# ---------- 4. Map ----------
-st.subheader("Hot spot map")
+# ---------- 4. Map (left) ----------
+with left_col:
+    st.subheader(f"Hot spot map: {month_name} {sel_year}")
 
-cells = region_cells[
-    (region_cells["year"] == sel_year) & (region_cells["month"] == sel_month)
-].copy()
+    cells = region_cells[
+        (region_cells["year"] == sel_year) & (region_cells["month"] == sel_month)
+    ].copy()
 
-if region == ALL:
-    center = {"lat": 39.0, "lon": 35.3}
-    zoom = 4.4
-else:
-    # Fit the whole region on the map: centre of its outer edges, zoom from its size
-    lat_min, lat_max = region_cells["lat"].min(), region_cells["lat"].max() + STEP
-    lon_min, lon_max = region_cells["lon"].min(), region_cells["lon"].max() + STEP
-    center = {"lat": (lat_min + lat_max) / 2, "lon": (lon_min + lon_max) / 2}
-    zoom_lon = np.log2(600 * 360 / (512 * (lon_max - lon_min)))
-    zoom_lat = np.log2(450 * 360 / (512 * (lat_max - lat_min) * 1.3))
-    zoom = min(zoom_lon, zoom_lat) - 0.3
+    if region == ALL:
+        center = {"lat": 39.0, "lon": 35.3}
+        zoom = 4.3
+    else:
+        # Fit the whole region on the map: centre of its outer edges, zoom from its size
+        lat_min, lat_max = region_cells["lat"].min(), region_cells["lat"].max() + STEP
+        lon_min, lon_max = region_cells["lon"].min(), region_cells["lon"].max() + STEP
+        center = {"lat": (lat_min + lat_max) / 2, "lon": (lon_min + lon_max) / 2}
+        zoom_lon = np.log2(600 * 360 / (512 * (lon_max - lon_min)))
+        zoom_lat = np.log2(450 * 360 / (512 * (lat_max - lat_min) * 1.3))
+        zoom = min(zoom_lon, zoom_lat) - 0.3
 
-if cells.empty:
-    st.info("No hot spots on the map for this month.")
-else:
-    cells["center_lat"] = cells["lat"] + STEP / 2
-    cells["center_lon"] = cells["lon"] + STEP / 2
-    cells["color"] = np.log10(cells["hotspots"].clip(lower=1))
+    if cells.empty:
+        st.info("No hot spots on the map for this month.")
+    else:
+        cells["center_lat"] = cells["lat"] + STEP / 2
+        cells["center_lon"] = cells["lon"] + STEP / 2
+        cells["color"] = np.log10(cells["hotspots"].clip(lower=1))
 
-    fig_map = px.scatter_map(
-        cells,
-        lat="center_lat",
-        lon="center_lon",
-        color="color",
-        color_continuous_scale="YlOrRd",
-        hover_name="province",
-        hover_data={"hotspots": ":,.1f", "region": True, "lat": True, "lon": True,
-                    "center_lat": False, "center_lon": False, "color": False},
-        center=center,
-        zoom=zoom,
-        height=550,
-        map_style="carto-darkmatter",
-    )
-    fig_map.update_traces(marker={"size": max(4, STEP * 12), "opacity": 0.9})
-
-    # Region borders: thin lines for all regions, thick line for the selected one
-    border_layers = [
-        {"sourcetype": "geojson", "source": regions_geo, "type": "line",
-         "color": "#FFFFFF", "line": {"width": 1.2}},
-    ]
-    if region != ALL:
-        selected = {"type": "FeatureCollection",
-                    "features": [f for f in regions_geo["features"]
-                                 if f["properties"]["region"] == region]}
-        border_layers.append(
-            {"sourcetype": "geojson", "source": selected, "type": "line",
-             "color": "#FFD54F", "line": {"width": 3}}
+        fig_map = px.scatter_map(
+            cells,
+            lat="center_lat",
+            lon="center_lon",
+            color="color",
+            color_continuous_scale="YlOrRd",
+            hover_name="province",
+            hover_data={"hotspots": ":,.1f", "region": True, "lat": True, "lon": True,
+                        "center_lat": False, "center_lon": False, "color": False},
+            center=center,
+            zoom=zoom,
+            height=CHART_HEIGHT,
+            map_style="carto-darkmatter",
         )
-    fig_map.update_layout(map={"layers": border_layers})
-    # Fixed colour scale for the map: 1 to 1,000 hot spots per cell
-    fig_map.update_coloraxes(
-        cmin=0,
-        cmax=3,
-        colorbar={"title": "Hot Spots", "tickvals": [0, 1, 2, 3],
-                  "ticktext": ["1", "10", "100", "1,000+"]},
-    )
-    fig_map.update_layout(
-        margin={"l": 0, "r": 0, "t": 0, "b": 0},
-        paper_bgcolor="rgba(0,0,0,0)",
-        font_color="#FAFAFA",
-    )
+        fig_map.update_traces(marker={"size": max(4, STEP * 12), "opacity": 0.9})
 
-    st.plotly_chart(fig_map, theme=None)
-    st.caption(
-        f"Each dot is a {STEP:g}° x {STEP:g}° grid cell. White lines are region borders. "
-        f"{len(cells):,} cells with hot spots in {month_name} {sel_year}."
-    )
+        # Region borders: thin lines for all regions, thick line for the selected one
+        border_layers = [
+            {"sourcetype": "geojson", "source": regions_geo, "type": "line",
+             "color": "#FFFFFF", "line": {"width": 1.2}},
+        ]
+        if region != ALL:
+            selected = {"type": "FeatureCollection",
+                        "features": [f for f in regions_geo["features"]
+                                     if f["properties"]["region"] == region]}
+            border_layers.append(
+                {"sourcetype": "geojson", "source": selected, "type": "line",
+                 "color": "#FFD54F", "line": {"width": 3}}
+            )
+        fig_map.update_layout(map={"layers": border_layers})
+        # Fixed colour scale for the map: 1 to 1,000 hot spots per cell
+        fig_map.update_coloraxes(
+            cmin=0,
+            cmax=3,
+            colorbar={"title": "Hot Spots", "tickvals": [0, 1, 2, 3],
+                      "ticktext": ["1", "10", "100", "1,000+"]},
+        )
+        fig_map.update_layout(
+            margin={"l": 0, "r": 0, "t": 0, "b": 0},
+            paper_bgcolor="rgba(0,0,0,0)",
+            font_color="#FAFAFA",
+        )
 
-# ---------- 5. Calendar ----------
-st.subheader("Burning activity calendar")
+        st.plotly_chart(fig_map, theme=None)
+        st.caption(
+            f"Each dot is a {STEP:g}° x {STEP:g}° grid cell. White lines are region borders. "
+            f"{len(cells):,} cells with hot spots."
+        )
 
-y_min, y_max = int(df["year"].min()), int(df["year"].max())
-start_year, end_year = st.slider(
-    "Year range: drag the left handle for the start year, the right handle for the end year",
-    y_min, y_max, (y_min, y_max),
-)
-left, right = st.columns(2)
-left.markdown(f"**Start year:** {start_year}")
-right.markdown(
-    f"<div style='text-align: right'><b>End year:</b> {end_year}</div>",
-    unsafe_allow_html=True,
-)
+# ---------- 5. Calendar (right) ----------
 cal_data = monthly[(monthly["year"] >= start_year) & (monthly["year"] <= end_year)]
 
 
@@ -228,144 +178,156 @@ def grid(column):
     return t.reindex(columns=range(1, 13))
 
 
-table = grid("hotspots")
-table.columns = MONTHS
-colors = np.sqrt(table)
+with right_col:
+    st.subheader(f"Burning activity calendar: {start_year}-{end_year}")
 
-details = np.dstack(
-    [grid(c) for c in ["hotspots", "range_hover", "confidence", "source", "note"]]
-)
+    table = grid("hotspots")
+    table.columns = MONTHS
+    colors = np.sqrt(table)
 
-fig = px.imshow(
-    colors,
-    color_continuous_scale="YlOrRd",
-    labels={"x": "Month", "y": "Year", "color": "Hot Spots"},
-    aspect="auto",
-)
+    details = np.dstack(
+        [grid(c) for c in ["hotspots", "range_hover", "confidence", "source", "note"]]
+    )
 
-fig.update_traces(
-    customdata=details,
-    hovertemplate=(
-        "<b>%{x} %{y}</b><br>"
-        "Hot spots: %{customdata[0]:,.0f}<br>"
-        "%{customdata[1]}"
-        "Confidence: %{customdata[2]}<br>"
-        "Source: %{customdata[3]}<br>"
-        "%{customdata[4]}<extra></extra>"
-    ),
-)
+    fig = px.imshow(
+        colors,
+        color_continuous_scale="YlOrRd",
+        labels={"x": "Month", "y": "Year", "color": "Hot Spots"},
+        aspect="auto",
+    )
 
-# Fixed colour scale: the same colours mean the same numbers in every region
-CAL_TICKS = [0, 500, 2000, 5000, 10000, 20000]
-fig.update_coloraxes(
-    cmin=0,
-    cmax=np.sqrt(20000),
-    colorbar={"title": "Hot Spots",
-              "tickvals": [np.sqrt(v) for v in CAL_TICKS],
-              "ticktext": [f"{v:,}" for v in CAL_TICKS]},
-)
+    fig.update_traces(
+        customdata=details,
+        hovertemplate=(
+            "<b>%{x} %{y}</b><br>"
+            "Hot spots: %{customdata[0]:,.0f}<br>"
+            "%{customdata[1]}"
+            "Confidence: %{customdata[2]}<br>"
+            "Source: %{customdata[3]}<br>"
+            "%{customdata[4]}<extra></extra>"
+        ),
+    )
 
-fig.update_xaxes(showgrid=False)
-fig.update_yaxes(dtick=1, showgrid=False)
+    # Fixed colour scale: the same colours mean the same numbers in every region
+    CAL_TICKS = [0, 500, 2000, 5000, 10000, 15000, 20000, 25000]
+    fig.update_coloraxes(
+        cmin=0,
+        cmax=np.sqrt(25000),
+        colorbar={"title": "Hot Spots",
+                  "tickvals": [np.sqrt(v) for v in CAL_TICKS],
+                  "ticktext": [f"{v:,}" for v in CAL_TICKS]},
+    )
 
-fig.update_layout(
-    height=750,
-    plot_bgcolor="#BDBDBD",
-    paper_bgcolor="rgba(0,0,0,0)",
-    font_color="#FAFAFA",
-)
+    fig.update_xaxes(showgrid=False)
+    fig.update_yaxes(dtick=1, showgrid=False)
 
-with st.container(key="calendar"):
+    fig.update_layout(
+        height=CHART_HEIGHT,
+        margin={"l": 50, "r": 0, "t": 0, "b": 40},
+        plot_bgcolor="#BDBDBD",
+        paper_bgcolor="rgba(0,0,0,0)",
+        font_color="#FAFAFA",
+    )
+
     st.plotly_chart(fig, theme=None)
+    st.caption(f"{region}. Colour uses a square-root scale. Grey cells have no data.")
 
-st.caption(f"{region}, {start_year}-{end_year}. Colour uses a square-root scale. Grey cells have no data.")
+    csv_text = cal_data[["year", "month", "hotspots", "lower", "upper", "source", "confidence", "note"]].to_csv(index=False)
+    st.download_button(
+        label=f"Download {start_year}-{end_year} data (CSV)",
+        data=csv_text,
+        file_name=f"burning_activity_{region.replace(' ', '_')}_{start_year}-{end_year}.csv",
+        mime="text/csv",
+    )
 
-csv_text = cal_data[["year", "month", "hotspots", "lower", "upper", "source", "confidence", "note"]].to_csv(index=False)
-st.download_button(
-    label="Download this table (CSV)",
-    data=csv_text,
-    file_name=f"burning_activity_{region.replace(' ', '_')}_{start_year}-{end_year}.csv",
-    mime="text/csv",
-)
+st.divider()
 
-# ---------- 6. Selected month vs. other years ----------
-st.subheader("Selected month vs. other years")
+# Second row: left = selected month vs. other years, right = season profile
+info_left, info_right = st.columns(2, gap="large")
 
-same_month = monthly[monthly["month"] == sel_month]
-row = same_month[same_month["year"] == sel_year]
-others = same_month[same_month["year"] != sel_year]
-median = others["hotspots"].median()
+# ---------- 6. Selected month vs. other years (left) ----------
+with info_left:
+    st.subheader("Selected month vs. other years")
 
-if row.empty:
-    st.info("No data for this month.")
-else:
-    current = row["hotspots"].iloc[0]
-    m1, m2, m3 = st.columns(3)
-    if median > 0:
-        change = (current - median) / median * 100
-        m1.metric(f"{month_name} {sel_year}", f"{current:,.0f}", f"{change:+.0f}% vs. median", delta_color="inverse", border=True)
+    same_month = monthly[monthly["month"] == sel_month]
+    row = same_month[same_month["year"] == sel_year]
+    others = same_month[same_month["year"] != sel_year]
+    median = others["hotspots"].median()
+
+    if row.empty:
+        st.info("No data for this month.")
     else:
-        m1.metric(f"{month_name} {sel_year}", f"{current:,.0f}", border=True)
-    m2.metric(f"Median of other years ({month_name})", f"{median:,.0f}", border=True)
-    m3.metric("Confidence", row["confidence"].iloc[0].capitalize(), border=True)
-    m1.caption(
-        f"Hot spots detected in {region} in {month_name} {sel_year} "
-        f"(VIIRS-equivalent). The percentage compares it with the median."
-    )
-    m2.caption(
-        f"A typical {month_name}: the middle value of {month_name} "
-        f"across the other {others['hotspots'].count()} years."
-    )
-    m3.caption(
-        "How reliable this number is. High: measured by VIIRS. "
-        "Medium: converted from MODIS or near real-time. "
-        "Low: converted from early MODIS (one satellite only)."
-    )
-    details_text = ". ".join(t for t in [row["range_text"].iloc[0], row["note"].iloc[0]] if t)
-    if details_text:
-        st.caption(details_text)
+        current = row["hotspots"].iloc[0]
+        m1, m2, m3 = st.columns(3)
+        if median > 0:
+            change = (current - median) / median * 100
+            m1.metric(f"{month_name} {sel_year}", f"{current:,.0f}", f"{change:+.0f}% vs. median", delta_color="inverse", border=True)
+        else:
+            m1.metric(f"{month_name} {sel_year}", f"{current:,.0f}", border=True)
+        m2.metric(f"Median of other years ({month_name})", f"{median:,.0f}", border=True)
+        m3.metric("Confidence", row["confidence"].iloc[0].capitalize(), border=True)
+        m1.caption(
+            f"Hot spots detected in {region} in {month_name} {sel_year} "
+            f"(VIIRS-equivalent). The percentage compares it with the median."
+        )
+        m2.caption(
+            f"A typical {month_name}: the middle value of {month_name} "
+            f"across the other {others['hotspots'].count()} years."
+        )
+        m3.caption(
+            "How reliable this number is. High: measured by VIIRS. "
+            "Medium: converted from MODIS or near real-time. "
+            "Low: converted from early MODIS (one satellite only)."
+        )
+        details_text = ". ".join(t for t in [row["range_text"].iloc[0], row["note"].iloc[0]] if t)
+        if details_text:
+            st.caption(details_text)
 
-# Change between two periods: average yearly hot spots
-yearly_total = monthly.groupby("year")["hotspots"].sum()
-early = yearly_total.loc[2003:2011].mean()
-late = yearly_total.loc[2017:2025].mean()
-if early > 0:
-    period_change = (late - early) / early * 100
-    st.metric(
-        "Average yearly hot spots, 2017-2025 vs. 2003-2011",
-        f"{period_change:+.0f}%",
-        help=f"2003-2011: {early:,.0f} per year. 2017-2025: {late:,.0f} per year.",
-        border=True,
+    # Change between two periods: average yearly hot spots
+    yearly_total = monthly.groupby("year")["hotspots"].sum()
+    early = yearly_total.loc[2003:2011].mean()
+    late = yearly_total.loc[2017:2025].mean()
+    if early > 0:
+        period_change = (late - early) / early * 100
+        st.metric(
+            "Average yearly hot spots, 2017-2025 vs. 2003-2011",
+            f"{period_change:+.0f}%",
+            help=f"2003-2011: {early:,.0f} per year. 2017-2025: {late:,.0f} per year.",
+            border=True,
+        )
+
+# ---------- 7. Season profile (right) ----------
+with info_right:
+    st.subheader(f"Season profile: {sel_year}")
+
+    profile = monthly[monthly["year"] != sel_year].groupby("month")["hotspots"]
+    p_median = profile.median().reindex(range(1, 13))
+    p_low = profile.quantile(0.1).reindex(range(1, 13))
+    p_high = profile.quantile(0.9).reindex(range(1, 13))
+    this_year = monthly[monthly["year"] == sel_year].set_index("month")["hotspots"].reindex(range(1, 13))
+
+    fig_season = go.Figure()
+    fig_season.add_trace(go.Scatter(x=MONTHS, y=p_high, mode="lines", line={"width": 0}, showlegend=False, hoverinfo="skip"))
+    fig_season.add_trace(go.Scatter(x=MONTHS, y=p_low, mode="lines", fill="tonexty", fillcolor="rgba(253,141,60,0.25)",
+                                    line={"width": 0}, name="Normal range (10-90%)", hoverinfo="skip"))
+    fig_season.add_trace(go.Scatter(x=MONTHS, y=p_median, mode="lines", name="Median of other years",
+                                    line={"color": "#FD8D3C", "width": 2, "dash": "dash"}))
+    fig_season.add_trace(go.Scatter(x=MONTHS, y=this_year, name=str(sel_year),
+                                    line={"color": "#FAFAFA", "width": 3}, mode="lines+markers"))
+    fig_season.update_layout(
+        height=400,
+        margin={"l": 50, "r": 0, "t": 10, "b": 0},
+        yaxis_title="Hot spots",
+        hovermode="x unified",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font_color="#FAFAFA",
+        legend={"orientation": "h", "y": -0.15},
     )
-
-# ---------- 7. Season profile ----------
-st.subheader("Season profile")
-
-profile = monthly[monthly["year"] != sel_year].groupby("month")["hotspots"]
-p_median = profile.median().reindex(range(1, 13))
-p_low = profile.quantile(0.1).reindex(range(1, 13))
-p_high = profile.quantile(0.9).reindex(range(1, 13))
-this_year = monthly[monthly["year"] == sel_year].set_index("month")["hotspots"].reindex(range(1, 13))
-
-fig_season = go.Figure()
-fig_season.add_trace(go.Scatter(x=MONTHS, y=p_high, line={"width": 0}, showlegend=False, hoverinfo="skip"))
-fig_season.add_trace(go.Scatter(x=MONTHS, y=p_low, fill="tonexty", fillcolor="rgba(253,141,60,0.25)",
-                                line={"width": 0}, name="Normal range (10-90%)", hoverinfo="skip"))
-fig_season.add_trace(go.Scatter(x=MONTHS, y=p_median, name="Median of other years",
-                                line={"color": "#FD8D3C", "width": 2, "dash": "dash"}))
-fig_season.add_trace(go.Scatter(x=MONTHS, y=this_year, name=str(sel_year),
-                                line={"color": "#FAFAFA", "width": 3}, mode="lines+markers"))
-fig_season.update_layout(
-    height=400,
-    yaxis_title="Hot spots",
-    hovermode="x unified",
-    paper_bgcolor="rgba(0,0,0,0)",
-    plot_bgcolor="rgba(0,0,0,0)",
-    font_color="#FAFAFA",
-    legend={"orientation": "h", "y": -0.15},
-)
-st.plotly_chart(fig_season, theme=None)
-st.caption(f"{region}. Shaded band: 80% of the other years fall inside it.")
+    fig_season.update_xaxes(gridcolor="rgba(255,255,255,0.1)")
+    fig_season.update_yaxes(gridcolor="rgba(255,255,255,0.1)")
+    st.plotly_chart(fig_season, theme=None)
+    st.caption(f"{region}. Shaded band: 80% of the other years fall inside it.")
 
 # ---------- 8. Method ----------
 with st.expander("Method"):
