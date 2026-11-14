@@ -65,6 +65,7 @@ def sqrt_colorbar(fig, high):
     )
 
 
+# ---------- 1. Read the data ----------
 @st.cache_data
 def load_data(cal_time, grid_time):
     cal = pd.read_csv("calendar_turkey.csv")
@@ -76,24 +77,29 @@ def load_data(cal_time, grid_time):
     return cal, grid_df, regions_geo
 
 
+# File times are passed in so that a newly uploaded file is always re-read
 df, grid_df, regions_geo = load_data(
     os.path.getmtime("calendar_turkey.csv"), os.path.getmtime("grid_turkey.csv")
 )
 
+# Size of one grid cell in degrees (0.5 now; works if the grid gets finer)
 STEP = float(np.diff(np.sort(grid_df["lat"].unique())).min())
 
+# Default selection: the newest month that is not a partial month
 complete = df[~df["note"].str.contains("Partial", case=False)]
 default = complete.iloc[-1]
 
 REGIONS = [ALL] + sorted(grid_df["region"].unique())
 YEARS = sorted(df["year"].unique(), reverse=True)
 
+# ---------- 2. Selection row ----------
 c0, c1, c2 = st.columns(3)
 region = c0.selectbox("Region", REGIONS)
 sel_year = c1.selectbox("Year", YEARS, index=YEARS.index(default["year"]))
 month_name = c2.selectbox("Month", MONTHS, index=int(default["month"]) - 1)
 sel_month = MONTHS.index(month_name) + 1
 
+# ---------- 3. Monthly table for the selected region ----------
 if region == ALL:
     monthly = df.copy()
     region_cells = grid_df
@@ -113,12 +119,78 @@ else:
     if yearly.median() < 300:
         st.warning("Small area: estimates are less reliable.")
 
+# Range text: empty when lower and upper are the same number
 monthly["range_text"] = [
     "" if round(lo) == round(up) else f"Range: {lo:,.0f} to {up:,.0f}"
     for lo, up in zip(monthly["lower"], monthly["upper"])
 ]
 monthly["range_hover"] = [t + "<br>" if t else "" for t in monthly["range_text"]]
 
+# ---------- 4. Map ----------
+st.subheader("Hot spot map")
+
+cells = region_cells[
+    (region_cells["year"] == sel_year) & (region_cells["month"] == sel_month)
+].copy()
+
+if region == ALL:
+    center = {"lat": 39.0, "lon": 35.3}
+    zoom = 4.4
+else:
+    center = {"lat": region_cells["lat"].mean() + STEP / 2, "lon": region_cells["lon"].mean() + STEP / 2}
+    zoom = 5.8
+
+if cells.empty:
+    st.info("No hot spots on the map for this month.")
+else:
+    cells["center_lat"] = cells["lat"] + STEP / 2
+    cells["center_lon"] = cells["lon"] + STEP / 2
+    cells["color"] = np.log10(cells["hotspots"].clip(lower=1))
+
+    fig_map = px.scatter_map(
+        cells,
+        lat="center_lat",
+        lon="center_lon",
+        color="color",
+        color_continuous_scale="YlOrRd",
+        hover_name="province",
+        hover_data={"hotspots": ":,.1f", "region": True, "lat": True, "lon": True,
+                    "center_lat": False, "center_lon": False, "color": False},
+        center=center,
+        zoom=zoom,
+        height=550,
+        map_style="carto-darkmatter",
+    )
+    fig_map.update_traces(marker={"size": max(3, STEP * 12), "opacity": 0.9})
+
+    # Region borders: thin lines for all regions, thick line for the selected one
+    border_layers = [
+        {"sourcetype": "geojson", "source": regions_geo, "type": "line",
+         "color": "#FFFFFF", "line": {"width": 1.2}},
+    ]
+    if region != ALL:
+        selected = {"type": "FeatureCollection",
+                    "features": [f for f in regions_geo["features"]
+                                 if f["properties"]["region"] == region]}
+        border_layers.append(
+            {"sourcetype": "geojson", "source": selected, "type": "line",
+             "color": "#FFD54F", "line": {"width": 3}}
+        )
+    fig_map.update_layout(map={"layers": border_layers})
+    log_colorbar(fig_map, cells["hotspots"].min(), cells["hotspots"].max())
+    fig_map.update_layout(
+        margin={"l": 0, "r": 0, "t": 0, "b": 0},
+        paper_bgcolor="rgba(0,0,0,0)",
+        font_color="#FAFAFA",
+    )
+
+    st.plotly_chart(fig_map, theme=None)
+    st.caption(
+        f"Each dot is a {STEP}° x {STEP}° grid cell. White lines are region borders. "
+        f"{len(cells):,} cells with hot spots in {month_name} {sel_year}."
+    )
+
+# ---------- 5. Selected month vs. other years ----------
 st.subheader("Selected month vs. other years")
 
 same_month = monthly[monthly["month"] == sel_month]
@@ -142,6 +214,7 @@ else:
     if details_text:
         st.caption(details_text)
 
+# ---------- 6. Calendar ----------
 st.subheader("Burning activity calendar")
 
 
@@ -193,65 +266,3 @@ with st.container(key="calendar"):
     st.plotly_chart(fig, theme=None)
 
 st.caption(f"{region}. Colour uses a square-root scale. Grey cells have no data.")
-
-st.subheader("Hot spot map")
-
-cells = region_cells[
-    (region_cells["year"] == sel_year) & (region_cells["month"] == sel_month)
-].copy()
-
-if region == ALL:
-    center = {"lat": 39.0, "lon": 35.3}
-    zoom = 4.4
-else:
-    center = {"lat": region_cells["lat"].mean() + STEP / 2, "lon": region_cells["lon"].mean() + STEP / 2}
-    zoom = 5.8
-
-if cells.empty:
-    st.info("No hot spots on the map for this month.")
-else:
-    cells["center_lat"] = cells["lat"] + STEP / 2
-    cells["center_lon"] = cells["lon"] + STEP / 2
-    cells["color"] = np.log10(cells["hotspots"].clip(lower=1))
-
-    fig_map = px.scatter_map(
-        cells,
-        lat="center_lat",
-        lon="center_lon",
-        color="color",
-        color_continuous_scale="YlOrRd",
-        hover_name="province",
-        hover_data={"hotspots": ":,.1f", "region": True, "lat": True, "lon": True,
-                    "center_lat": False, "center_lon": False, "color": False},
-        center=center,
-        zoom=zoom,
-        height=550,
-        map_style="carto-darkmatter",
-    )
-    fig_map.update_traces(marker={"size": max(3, STEP * 12), "opacity": 0.9})
-
-    border_layers = [
-        {"sourcetype": "geojson", "source": regions_geo, "type": "line",
-         "color": "#FFFFFF", "line": {"width": 1.2}},
-    ]
-    if region != ALL:
-        selected = {"type": "FeatureCollection",
-                    "features": [f for f in regions_geo["features"]
-                                 if f["properties"]["region"] == region]}
-        border_layers.append(
-            {"sourcetype": "geojson", "source": selected, "type": "line",
-             "color": "#FFD54F", "line": {"width": 3}}
-        )
-    fig_map.update_layout(map={"layers": border_layers})
-    log_colorbar(fig_map, cells["hotspots"].min(), cells["hotspots"].max())
-    fig_map.update_layout(
-        margin={"l": 0, "r": 0, "t": 0, "b": 0},
-        paper_bgcolor="rgba(0,0,0,0)",
-        font_color="#FAFAFA",
-    )
-
-    st.plotly_chart(fig_map, theme=None)
-    st.caption(
-        f"Each dot is a {STEP}° x {STEP}° grid cell. White lines are region borders. "
-        f"{len(cells):,} cells with hot spots in {month_name} {sel_year}."
-    )
