@@ -9,12 +9,21 @@ st.title("Türkiye Fire Activity Calendar")
 st.write("Harmonized MODIS and VIIRS hot spots, 2000-2026.")
 
 df = pd.read_csv("calendar_turkey.csv")
+df["note"] = df["note"].fillna("") 
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 table = df.pivot(index="year", columns="month", values="hotspots")
 table = table.reindex(columns=range(1,13))
 table.columns = MONTHS
 colors = np.log10(table.clip(lower=1))
+
+def grid(column):
+  t = df.pivot(index="year", columns="month", values=column)
+  return t.reindex(columns=range(1, 13))
+
+details = np.dstack(
+  [grid(c) for c in ["hotspots", "lower", "upper", "confidence", "source", "note"]]
+)
 
 st.subheader("Burning Activity Calendar")
 
@@ -24,6 +33,19 @@ fig = px.imshow(
   labels={"x": "Month", "y": "Year", "color": "Hot Spots"},
  aspect="auto",
 )
+
+fig.update_traces(
+  customdata=details,
+  hovertemplate=(
+    "<b>%{x} %{y}</b><br>"
+    "Hot spots: %{customdata[0]:,.0f}<br>"
+    "Range: %{customdata[1]:,.0f} to %{customdata[2]:,.0f}<br>"
+    "Confidence: %{customdata[3]}<br>"
+    "Source: %{customdata[4]}<br>"
+    "%{customdata[5]}<extra></extra>"
+  ),
+)
+
 fig.update_coloraxes(
   colorbar={
     "title": "Hot Spots",
@@ -31,7 +53,11 @@ fig.update_coloraxes(
     "ticktext": ["1", "10", "100", "1,000", "10,000"],
   }
 )
+
 fig.update_yaxes(dtick=1)
-fig.update_layout(height=750)
+fig.update_layout(height=750, plot_bgcolor="#E0E0E0")
 
 st.plotly_chart(fig)
+
+st.caption("Colour uses a logarithmic scale. Grey cells have no data.")
+
