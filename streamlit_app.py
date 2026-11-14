@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import numpy as np 
 
 st.set_page_config(page_title="Türkiye Fire Activity Calendar", page_icon="🔥", layout="wide")
 
@@ -13,14 +14,21 @@ MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", 
 table = df.pivot(index="year", columns="month", values="hotspots")
 table = table.reindex(columns=range(1,13))
 table.columns = MONTHS
+colors = np.log10(table.clip(lower=1))
 
 st.subheader("Burning Activity Calendar")
 
 fig = px.imshow(
-  table,
+  colors,
   color_continuous_scale="Inferno",
   labels={"x": "Month", "y": "Year", "color": "Hot Spots"},
   aspect="auto",
+fig.update_coloraxes(
+  colorbar={
+    "title": "Hot Spots",
+    "tickvals": [0, 1, 2, 3, 4],
+    "ticktext": ["1", "10", "100", "1,000", "10,000"],
+  }
 )
 fig.update_yaxes(dtick=1)
 fig.update_layout(height=750)
