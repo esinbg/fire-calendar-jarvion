@@ -6,7 +6,7 @@ import numpy as np
 import json
 import os
 
-st.set_page_config(page_title="Türkiye Burning Activity Calendar", page_icon="🔥")
+st.set_page_config(page_title="Turkiye Burning Activity Calendar", page_icon="🔥")
 
 st.markdown(
     """
@@ -23,11 +23,11 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.title("Türkiye Burning Activity Calendar")
+st.title("Turkiye Burning Activity Calendar")
 st.caption("Harmonized MODIS and VIIRS hot spots, 2000-2026.")
 
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-ALL = "All of Türkiye"
+ALL = "All of Turkiye"
 
 
 def log_colorbar(fig, low, high):
