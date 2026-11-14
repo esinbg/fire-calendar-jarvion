@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import numpy as np
 import json
+import os
 
 st.set_page_config(page_title="Türkiye Burning Activity Calendar", page_icon="🔥")
 
@@ -48,8 +49,24 @@ def log_colorbar(fig, low, high):
     )
 
 
+def sqrt_colorbar(fig, high):
+    """Colour bar on a square-root scale, labelled with real numbers."""
+    top = np.sqrt(max(high, 1))
+    ticks = [0]
+    labels = ["0"]
+    for v in [10, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000]:
+        if v <= high and np.sqrt(v) - ticks[-1] > 0.08 * top:
+            ticks.append(np.sqrt(v))
+            labels.append(f"{v:,}")
+    fig.update_coloraxes(
+        cmin=0,
+        cmax=top,
+        colorbar={"title": "Hot Spots", "tickvals": ticks, "ticktext": labels},
+    )
+
+
 @st.cache_data
-def load_data():
+def load_data(cal_time, grid_time):
     cal = pd.read_csv("calendar_turkey.csv")
     cal["note"] = cal["note"].fillna("")
     cal = cal.sort_values(["year", "month"]).reset_index(drop=True)
@@ -59,7 +76,9 @@ def load_data():
     return cal, grid_df, regions_geo
 
 
-df, grid_df, regions_geo = load_data()
+df, grid_df, regions_geo = load_data(
+    os.path.getmtime("calendar_turkey.csv"), os.path.getmtime("grid_turkey.csv")
+)
 
 STEP = float(np.diff(np.sort(grid_df["lat"].unique())).min())
 
@@ -93,6 +112,87 @@ else:
     yearly = monthly.groupby("year")["hotspots"].sum()
     if yearly.median() < 300:
         st.warning("Small area: estimates are less reliable.")
+
+monthly["range_text"] = [
+    "" if round(lo) == round(up) else f"Range: {lo:,.0f} to {up:,.0f}"
+    for lo, up in zip(monthly["lower"], monthly["upper"])
+]
+monthly["range_hover"] = [t + "<br>" if t else "" for t in monthly["range_text"]]
+
+st.subheader("Selected month vs. other years")
+
+same_month = monthly[monthly["month"] == sel_month]
+row = same_month[same_month["year"] == sel_year]
+others = same_month[same_month["year"] != sel_year]
+median = others["hotspots"].median()
+
+if row.empty:
+    st.info("No data for this month.")
+else:
+    current = row["hotspots"].iloc[0]
+    m1, m2, m3 = st.columns(3)
+    if median > 0:
+        change = (current - median) / median * 100
+        m1.metric(f"{month_name} {sel_year}", f"{current:,.0f}", f"{change:+.0f}% vs. median", delta_color="inverse", border=True)
+    else:
+        m1.metric(f"{month_name} {sel_year}", f"{current:,.0f}", border=True)
+    m2.metric(f"Median of other years ({month_name})", f"{median:,.0f}", border=True)
+    m3.metric("Confidence", row["confidence"].iloc[0].capitalize(), border=True)
+    details_text = ". ".join(t for t in [row["range_text"].iloc[0], row["note"].iloc[0]] if t)
+    if details_text:
+        st.caption(details_text)
+
+st.subheader("Burning activity calendar")
+
+
+def grid(column):
+    t = monthly.pivot(index="year", columns="month", values=column)
+    return t.reindex(columns=range(1, 13))
+
+
+table = grid("hotspots")
+table.columns = MONTHS
+colors = np.sqrt(table)
+
+details = np.dstack(
+    [grid(c) for c in ["hotspots", "range_hover", "confidence", "source", "note"]]
+)
+
+fig = px.imshow(
+    colors,
+    color_continuous_scale="YlOrRd",
+    labels={"x": "Month", "y": "Year", "color": "Hot Spots"},
+    aspect="auto",
+)
+
+fig.update_traces(
+    customdata=details,
+    hovertemplate=(
+        "<b>%{x} %{y}</b><br>"
+        "Hot spots: %{customdata[0]:,.0f}<br>"
+        "%{customdata[1]}"
+        "Confidence: %{customdata[2]}<br>"
+        "Source: %{customdata[3]}<br>"
+        "%{customdata[4]}<extra></extra>"
+    ),
+)
+
+sqrt_colorbar(fig, table.max().max())
+
+fig.update_xaxes(showgrid=False)
+fig.update_yaxes(dtick=1, showgrid=False)
+
+fig.update_layout(
+    height=750,
+    plot_bgcolor="#BDBDBD",
+    paper_bgcolor="rgba(0,0,0,0)",
+    font_color="#FAFAFA",
+)
+
+with st.container(key="calendar"):
+    st.plotly_chart(fig, theme=None)
+
+st.caption(f"{region}. Colour uses a square-root scale. Grey cells have no data.")
 
 st.subheader("Hot spot map")
 
@@ -128,7 +228,6 @@ else:
         height=550,
         map_style="carto-darkmatter",
     )
-    
     fig_map.update_traces(marker={"size": max(3, STEP * 12), "opacity": 0.9})
 
     border_layers = [
@@ -143,7 +242,7 @@ else:
             {"sourcetype": "geojson", "source": selected, "type": "line",
              "color": "#FFD54F", "line": {"width": 3}}
         )
-    fig_map.update_layout(map={"layers": border_layers})    
+    fig_map.update_layout(map={"layers": border_layers})
     log_colorbar(fig_map, cells["hotspots"].min(), cells["hotspots"].max())
     fig_map.update_layout(
         margin={"l": 0, "r": 0, "t": 0, "b": 0},
@@ -156,76 +255,3 @@ else:
         f"Each dot is a {STEP}° x {STEP}° grid cell. White lines are region borders. "
         f"{len(cells):,} cells with hot spots in {month_name} {sel_year}."
     )
-
-st.subheader("Selected month vs. other years")
-
-same_month = monthly[monthly["month"] == sel_month]
-row = same_month[same_month["year"] == sel_year]
-others = same_month[same_month["year"] != sel_year]
-median = others["hotspots"].median()
-
-if row.empty:
-    st.info("No data for this month.")
-else:
-    current = row["hotspots"].iloc[0]
-    m1, m2, m3 = st.columns(3)
-    if median > 0:
-        change = (current - median) / median * 100
-        m1.metric(f"{month_name} {sel_year}", f"{current:,.0f}", f"{change:+.0f}% vs. median", delta_color="inverse", border=True)
-    else:
-        m1.metric(f"{month_name} {sel_year}", f"{current:,.0f}", border=True)
-    m2.metric(f"Median of other years ({month_name})", f"{median:,.0f}", border=True)
-    m3.metric("Confidence", row["confidence"].iloc[0].capitalize(), border=True)
-    st.caption(f"Range: {row['lower'].iloc[0]:,.0f} to {row['upper'].iloc[0]:,.0f}. {row['note'].iloc[0]}")
-
-st.subheader("Burning activity calendar")
-
-
-def grid(column):
-    t = monthly.pivot(index="year", columns="month", values=column)
-    return t.reindex(columns=range(1, 13))
-
-
-table = grid("hotspots")
-table.columns = MONTHS
-colors = np.log10(table.clip(lower=1))
-
-details = np.dstack(
-    [grid(c) for c in ["hotspots", "lower", "upper", "confidence", "source", "note"]]
-)
-
-fig = px.imshow(
-    colors,
-    color_continuous_scale="YlOrRd",
-    labels={"x": "Month", "y": "Year", "color": "Hot Spots"},
-    aspect="auto",
-)
-
-fig.update_traces(
-    customdata=details,
-    hovertemplate=(
-        "<b>%{x} %{y}</b><br>"
-        "Hot spots: %{customdata[0]:,.0f}<br>"
-        "Range: %{customdata[1]:,.0f} to %{customdata[2]:,.0f}<br>"
-        "Confidence: %{customdata[3]}<br>"
-        "Source: %{customdata[4]}<br>"
-        "%{customdata[5]}<extra></extra>"
-    ),
-)
-
-log_colorbar(fig, table.min().min(), table.max().max())
-
-fig.update_xaxes(showgrid=False)
-fig.update_yaxes(dtick=1, showgrid=False)
-
-fig.update_layout(
-    height=750,
-    plot_bgcolor="#BDBDBD",
-    paper_bgcolor="rgba(0,0,0,0)",
-    font_color="#FAFAFA",
-)
-
-with st.container(key="calendar"):
-    st.plotly_chart(fig, theme=None)
-
-st.caption(f"{region}. Colour uses a logarithmic scale. Grey cells have no data.")
