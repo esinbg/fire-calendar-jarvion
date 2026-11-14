@@ -433,6 +433,11 @@ with info_left:
 # ---------- 7. Season profile (right) ----------
 with info_right:
     st.subheader(f"Season profile: {sel_year}")
+    st.caption(
+        f"How each month of {sel_year} (white line) compares with a normal year in {region}. "
+        "Orange dashed line: the median of the other years. Shaded band: the range where "
+        "80% of the other years fall. A white point above the band means an unusually active month."
+    )
 
     # Normal range and median: complete months of other years only
     profile = monthly[(monthly["year"] != sel_year) & monthly["complete"]].groupby("month")["hotspots"]
@@ -447,14 +452,34 @@ with info_right:
     this_year = year_rows["hotspots"].where(year_done)
     dashed = year_rows["hotspots"].where(year_part | year_part.shift(-1, fill_value=False))
 
+    # One clear hover box per month, attached to the median line
+    hover_text = []
+    for m in range(1, 13):
+        value = year_rows.loc[m, "hotspots"]
+        if pd.isna(value):
+            year_line = f"{sel_year}: no data"
+        elif year_part[m]:
+            year_line = (f"{sel_year}: {value:,.0f} (partial month, "
+                         f"{int(year_rows.loc[m, 'days_with_data'])} of "
+                         f"{int(year_rows.loc[m, 'days_in_month'])} days)")
+        else:
+            year_line = f"{sel_year}: {value:,.0f}"
+        hover_text.append(
+            f"<b>{FULL_MONTHS[m - 1]}</b><br>{year_line}<br>"
+            f"Median of other years: {p_median[m]:,.0f}<br>"
+            f"Normal range: {p_low[m]:,.0f} to {p_high[m]:,.0f}"
+        )
+
     fig_season = go.Figure()
     fig_season.add_trace(go.Scatter(x=MONTHS, y=p_high, mode="lines", line={"width": 0}, showlegend=False, hoverinfo="skip"))
     fig_season.add_trace(go.Scatter(x=MONTHS, y=p_low, mode="lines", fill="tonexty", fillcolor="rgba(253,141,60,0.25)",
                                     line={"width": 0}, name="Normal range (10-90%)", hoverinfo="skip"))
     fig_season.add_trace(go.Scatter(x=MONTHS, y=p_median, mode="lines", name="Median of other years",
-                                    line={"color": "#FD8D3C", "width": 2, "dash": "dash"}))
+                                    line={"color": "#FD8D3C", "width": 2, "dash": "dash"},
+                                    text=hover_text, hovertemplate="%{text}<extra></extra>"))
     fig_season.add_trace(go.Scatter(x=MONTHS, y=this_year, name=str(sel_year),
-                                    line={"color": "#FAFAFA", "width": 3}, mode="lines+markers"))
+                                    line={"color": "#FAFAFA", "width": 3}, mode="lines+markers",
+                                    hoverinfo="skip"))
     if year_part.any():
         fig_season.add_trace(go.Scatter(
             x=MONTHS, y=dashed, name=f"{sel_year} (partial month)", mode="lines+markers",
@@ -467,7 +492,9 @@ with info_right:
         height=400,
         margin={"l": 50, "r": 0, "t": 10, "b": 0},
         yaxis_title="Hot spots",
-        hovermode="x unified",
+        hovermode="x",
+        hoverlabel={"bgcolor": "#262730", "bordercolor": "#FD8D3C",
+                    "font": {"color": "#FAFAFA"}, "align": "left"},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font_color="#FAFAFA",
@@ -476,7 +503,6 @@ with info_right:
     fig_season.update_xaxes(gridcolor="rgba(255,255,255,0.1)")
     fig_season.update_yaxes(gridcolor="rgba(255,255,255,0.1)")
     st.plotly_chart(fig_season, theme=None)
-    st.caption(f"{region}. Shaded band: 80% of the other years fall inside it.")
 
 # ---------- 8. Method ----------
 with st.expander("Method"):
