@@ -5,14 +5,14 @@ import plotly.express as px
 st.set_page_config(page_title="Türkiye Fire Activity Calendar", page_icon="🔥", layout="wide")
 
 st.title("Türkiye Fire Activity Calendar")
-st.title("Harmonized MODIS and VIIRS hot spots, 2000-2026.")
+st.write("Harmonized MODIS and VIIRS hot spots, 2000-2026.")
 
 df = pd.read_csv("calendar_turkey.csv")
-months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 table = df.pivot(index="year", columns="month", values="hotspots")
 table = table.reindex(columns=range(1,13))
-table.columns = months
+table.columns = MONTHS
 
 st.subheader("Burning Activity Calendar")
 
