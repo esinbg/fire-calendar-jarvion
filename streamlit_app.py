@@ -27,10 +27,8 @@ df = pd.read_csv("calendar_turkey.csv")
 df["note"] = df["note"].fillna("")
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-# Sort the table by date, so "newest" always means the latest month
 df = df.sort_values(["year", "month"]).reset_index(drop=True)
 
-# Default selection: the newest month that is not a partial month
 complete = df[~df["note"].str.contains("Partial", case=False)]
 default = complete.iloc[-1]
 
