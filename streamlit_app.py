@@ -94,6 +94,10 @@ REGIONS = [ALL] + sorted(grid_df["region"].unique())
 YEARS = sorted(df["year"].unique(), reverse=True)
 
 # ---------- 2. Selection row ----------
+st.write(
+    "Choose a region, a year and a month to see where satellites detected "
+    "fire hot spots, and how that month compares with other years."
+)
 c0, c1, c2 = st.columns(3)
 region = c0.selectbox("Region", REGIONS)
 sel_year = c1.selectbox("Year", YEARS, index=YEARS.index(default["year"]))
@@ -202,48 +206,20 @@ else:
         f"{len(cells):,} cells with hot spots in {month_name} {sel_year}."
     )
 
-# ---------- 5. Selected month vs. other years ----------
-st.subheader("Selected month vs. other years")
-
-same_month = monthly[monthly["month"] == sel_month]
-row = same_month[same_month["year"] == sel_year]
-others = same_month[same_month["year"] != sel_year]
-median = others["hotspots"].median()
-
-if row.empty:
-    st.info("No data for this month.")
-else:
-    current = row["hotspots"].iloc[0]
-    m1, m2, m3 = st.columns(3)
-    if median > 0:
-        change = (current - median) / median * 100
-        m1.metric(f"{month_name} {sel_year}", f"{current:,.0f}", f"{change:+.0f}% vs. median", delta_color="inverse", border=True)
-    else:
-        m1.metric(f"{month_name} {sel_year}", f"{current:,.0f}", border=True)
-    m2.metric(f"Median of other years ({month_name})", f"{median:,.0f}", border=True)
-    m3.metric("Confidence", row["confidence"].iloc[0].capitalize(), border=True)
-    details_text = ". ".join(t for t in [row["range_text"].iloc[0], row["note"].iloc[0]] if t)
-    if details_text:
-        st.caption(details_text)
-
-# Change between two periods: average yearly hot spots
-yearly_total = monthly.groupby("year")["hotspots"].sum()
-early = yearly_total.loc[2003:2011].mean()
-late = yearly_total.loc[2017:2025].mean()
-if early > 0:
-    period_change = (late - early) / early * 100
-    st.metric(
-        "Average yearly hot spots, 2017-2025 vs. 2003-2011",
-        f"{period_change:+.0f}%",
-        help=f"2003-2011: {early:,.0f} per year. 2017-2025: {late:,.0f} per year.",
-        border=True,
-    )
-
-# ---------- 6. Calendar ----------
+# ---------- 5. Calendar ----------
 st.subheader("Burning activity calendar")
 
 y_min, y_max = int(df["year"].min()), int(df["year"].max())
-start_year, end_year = st.slider("Years", y_min, y_max, (y_min, y_max))
+start_year, end_year = st.slider(
+    "Year range: drag the left handle for the start year, the right handle for the end year",
+    y_min, y_max, (y_min, y_max),
+)
+left, right = st.columns(2)
+left.markdown(f"**Start year:** {start_year}")
+right.markdown(
+    f"<div style='text-align: right'><b>End year:</b> {end_year}</div>",
+    unsafe_allow_html=True,
+)
 cal_data = monthly[(monthly["year"] >= start_year) & (monthly["year"] <= end_year)]
 
 
@@ -311,6 +287,56 @@ st.download_button(
     file_name=f"burning_activity_{region.replace(' ', '_')}_{start_year}-{end_year}.csv",
     mime="text/csv",
 )
+
+# ---------- 6. Selected month vs. other years ----------
+st.subheader("Selected month vs. other years")
+
+same_month = monthly[monthly["month"] == sel_month]
+row = same_month[same_month["year"] == sel_year]
+others = same_month[same_month["year"] != sel_year]
+median = others["hotspots"].median()
+
+if row.empty:
+    st.info("No data for this month.")
+else:
+    current = row["hotspots"].iloc[0]
+    m1, m2, m3 = st.columns(3)
+    if median > 0:
+        change = (current - median) / median * 100
+        m1.metric(f"{month_name} {sel_year}", f"{current:,.0f}", f"{change:+.0f}% vs. median", delta_color="inverse", border=True)
+    else:
+        m1.metric(f"{month_name} {sel_year}", f"{current:,.0f}", border=True)
+    m2.metric(f"Median of other years ({month_name})", f"{median:,.0f}", border=True)
+    m3.metric("Confidence", row["confidence"].iloc[0].capitalize(), border=True)
+    m1.caption(
+        f"Hot spots detected in {region} in {month_name} {sel_year} "
+        f"(VIIRS-equivalent). The percentage compares it with the median."
+    )
+    m2.caption(
+        f"A typical {month_name}: the middle value of {month_name} "
+        f"across the other {others['hotspots'].count()} years."
+    )
+    m3.caption(
+        "How reliable this number is. High: measured by VIIRS. "
+        "Medium: converted from MODIS or near real-time. "
+        "Low: converted from early MODIS (one satellite only)."
+    )
+    details_text = ". ".join(t for t in [row["range_text"].iloc[0], row["note"].iloc[0]] if t)
+    if details_text:
+        st.caption(details_text)
+
+# Change between two periods: average yearly hot spots
+yearly_total = monthly.groupby("year")["hotspots"].sum()
+early = yearly_total.loc[2003:2011].mean()
+late = yearly_total.loc[2017:2025].mean()
+if early > 0:
+    period_change = (late - early) / early * 100
+    st.metric(
+        "Average yearly hot spots, 2017-2025 vs. 2003-2011",
+        f"{period_change:+.0f}%",
+        help=f"2003-2011: {early:,.0f} per year. 2017-2025: {late:,.0f} per year.",
+        border=True,
+    )
 
 # ---------- 7. Season profile ----------
 st.subheader("Season profile")
