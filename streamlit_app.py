@@ -14,6 +14,7 @@ st.caption("Harmonized MODIS and VIIRS hot spots, 2000-2026.")
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 ALL = "All of Türkiye"
 CHART_HEIGHT = 560
+CARD_HEIGHT = 230
 
 
 # ---------- 1. Read the data ----------
@@ -248,20 +249,20 @@ info_left, info_right = st.columns(2, gap="large")
 # ---------- 6. Selected month vs. other years (left) ----------
 def info_card(value, title, text, badge="", badge_color="#FF6B6B"):
     """A box with the explanation on the left and the title + big number on the right."""
-    with st.container(border=True):
-        text_col, num_col = st.columns([3, 2], vertical_alignment="center")
+    with st.container(border=True, height=CARD_HEIGHT):
+        text_col, num_col = st.columns([1, 1], vertical_alignment="center")
         badge_html = ""
         if badge:
             badge_html = (
                 f"<div style='display: inline-block; margin-top: 6px; padding: 2px 10px; "
                 f"border-radius: 12px; background: {badge_color}33; color: {badge_color}; "
-                f"font-size: 0.9rem;'>{badge}</div>"
+                f"font-size: 0.85rem; white-space: nowrap;'>{badge}</div>"
             )
         text_col.caption(text)
         num_col.markdown(
             f"<div style='text-align: center; padding: 4px 0 8px 0;'>"
             f"<div style='font-size: 0.95rem; font-weight: 600; margin-bottom: 4px;'>{title}</div>"
-            f"<div style='font-size: 2.1rem; font-weight: 600; line-height: 1.1;'>{value}</div>"
+            f"<div style='font-size: 1.8rem; font-weight: 600; line-height: 1.1; white-space: nowrap;'>{value}</div>"
             f"{badge_html}"
             f"</div>",
             unsafe_allow_html=True,
@@ -275,57 +276,66 @@ with info_left:
     others = same_month[same_month["year"] != sel_year]
     median = others["hotspots"].median()
 
+    # Four places for the cards: two rows, two columns
+    top_left, top_right = st.columns(2)
+    bottom_left, bottom_right = st.columns(2)
+
     if row.empty:
-        st.info("No data for this month.")
+        top_left.info("No data for this month.")
     else:
         current = row["hotspots"].iloc[0]
 
-        # Card 1: the selected month
+        # Card 1 (top left): the selected month
         badge, badge_color = "", "#FF6B6B"
         if median > 0:
             change = (current - median) / median * 100
             badge = f"{change:+.0f}% vs. median"
             badge_color = "#FF6B6B" if change > 0 else "#66BB6A"
         extra = ". ".join(t for t in [row["range_text"].iloc[0], row["note"].iloc[0]] if t)
-        info_card(
-            f"{current:,.0f}",
-            f"{month_name} {sel_year}",
-            f"Hot spots detected in {region} in this month (VIIRS-equivalent). "
-            f"The percentage compares it with the median of other years."
-            + (f" {extra}." if extra else ""),
-            badge,
-            badge_color,
-        )
+        with top_left:
+            info_card(
+                f"{current:,.0f}",
+                f"{month_name} {sel_year}",
+                f"Hot spots in {region} in this month (VIIRS-equivalent), "
+                f"compared with the median of other years."
+                + (f" {extra}." if extra else ""),
+                badge,
+                badge_color,
+            )
 
-        # Card 2: the median of the same month in other years
-        info_card(
-            f"{median:,.0f}",
-            f"Median of other years ({month_name})",
-            f"A typical {month_name}: the middle value of {month_name} "
-            f"across the other {others['hotspots'].count()} years.",
-        )
+        # Card 2 (top right): the median of the same month in other years
+        with top_right:
+            info_card(
+                f"{median:,.0f}",
+                f"Median of other years ({month_name})",
+                f"A typical {month_name}: the middle value of {month_name} "
+                f"across the other {others['hotspots'].count()} years.",
+            )
 
-        # Card 3: confidence
-        info_card(
-            row["confidence"].iloc[0].capitalize(),
-            "Confidence",
-            "How reliable this number is. **High:** measured by VIIRS. "
-            "**Medium:** converted from MODIS or near real-time. "
-            "**Low:** converted from early MODIS (one satellite only).",
-        )
+        # Card 3 (bottom left): confidence
+        with bottom_left:
+            info_card(
+                row["confidence"].iloc[0].capitalize(),
+                "Confidence",
+                "How reliable this number is. **High:** measured by VIIRS. "
+                "**Medium:** converted from MODIS, or near real-time. "
+                "**Low:** early MODIS, one satellite only.",
+            )
 
-    # Card 4: change between two periods (average yearly hot spots)
+    # Card 4 (bottom right): change between two periods (average yearly hot spots)
     yearly_total = monthly.groupby("year")["hotspots"].sum()
     early = yearly_total.loc[2003:2011].mean()
     late = yearly_total.loc[2017:2025].mean()
     if early > 0:
         period_change = (late - early) / early * 100
-        info_card(
-            f"{period_change:+.0f}%",
-            "2017-2025 vs. 2003-2011",
-            f"Change in average yearly hot spots in {region}: "
-            f"{early:,.0f} per year in 2003-2011, {late:,.0f} per year in 2017-2025.",
-        )
+        with bottom_right:
+            info_card(
+                f"{period_change:+.0f}%",
+                "2017-2025 vs. 2003-2011",
+                f"Change in average yearly hot spots in {region}: "
+                f"{early:,.0f} per year in 2003-2011, {late:,.0f} per year in 2017-2025.",
+            )
+####end of cards
 
 # ---------- 7. Season profile (right) ----------
 with info_right:
