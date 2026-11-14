@@ -262,7 +262,7 @@ def info_card(value, title, text, badge="", badge_color="#FF6B6B"):
         num_col.markdown(
             f"<div style='text-align: center; padding: 4px 0 8px 0;'>"
             f"<div style='font-size: 0.95rem; font-weight: 600; margin-bottom: 4px;'>{title}</div>"
-            f"<div style='font-size: 1.8rem; font-weight: 600; line-height: 1.1; white-space: nowrap;'>{value}</div>"
+            f"<div style='font-size: 2.1rem; font-weight: 600; line-height: 1.1; white-space: nowrap;'>{value}</div>"
             f"{badge_html}"
             f"</div>",
             unsafe_allow_html=True,
