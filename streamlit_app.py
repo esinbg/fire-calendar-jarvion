@@ -5,6 +5,21 @@ import numpy as np
 
 st.set_page_config(page_title="Türkiye Burning Activity Calendar", page_icon="🔥")
 
+st.markdown(
+    """
+    <style>
+    .st-key-calendar {
+        width: 92vw !important;
+        max-width: 92vw !important;
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.title("Türkiye Burning Activity Calendar")
 st.caption("Harmonized MODIS and VIIRS hot spots, 2000-2026.")
 
@@ -117,6 +132,8 @@ fig.update_layout(
   font_color="#FAFAFA",
 )
 
-st.plotly_chart(fig, theme=None)
+with st.container(key="calendar"):
+    st.plotly_chart(fig, theme=None)
+## eski hali st.plotly_chart(fig, theme=None) ##
 
 st.caption("Colour uses a logarithmic scale. Grey cells have no data.")
