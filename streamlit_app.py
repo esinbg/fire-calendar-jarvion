@@ -54,7 +54,9 @@ fig.update_coloraxes(
   }
 )
 
-fig.update_yaxes(dtick=1)
+fig.update_xaxes(showgrid=False)
+fig.update_yaxes(dtick=1, showgrid=False)
+
 fig.update_layout(
   height=750,
   plot_bgcolor="#BDBDBD",
