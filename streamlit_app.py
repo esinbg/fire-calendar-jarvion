@@ -55,7 +55,12 @@ fig.update_coloraxes(
 )
 
 fig.update_yaxes(dtick=1)
-fig.update_layout(height=750, plot_bgcolor="#BDBDBD")
+fig.update_layout(
+  height=750,
+  plot_bgcolor="#BDBDBD",
+  paper_bgcolor="rgba(0,0,0,0)",
+  font_color="#FAFAFA",
+)
 
 st.plotly_chart(fig, theme=None)
 
