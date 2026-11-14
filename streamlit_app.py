@@ -247,20 +247,23 @@ info_left, info_right = st.columns(2, gap="large")
 
 # ---------- 6. Selected month vs. other years (left) ----------
 def info_card(value, title, text, badge="", badge_color="#FF6B6B"):
-    """A box with a big number on the left and its explanation on the right."""
+    """A box with the explanation on the left and the title + big number on the right."""
     with st.container(border=True):
-        num_col, text_col = st.columns([2, 3], vertical_alignment="center")
+        text_col, num_col = st.columns([3, 2], vertical_alignment="center")
         badge_html = ""
         if badge:
             badge_html = (
                 f"<div style='display: inline-block; margin-top: 6px; padding: 2px 10px; "
                 f"border-radius: 12px; background: {badge_color}33; color: {badge_color}; "
-                f"font-size: 0.95rem;'>{badge}</div>"
+                f"font-size: 0.9rem;'>{badge}</div>"
             )
+        text_col.caption(text)
         num_col.markdown(
-            f"<div style='font-size: 1rem; font-weight: 600; margin-bottom: 4px;'>{title}</div>"
-            f"<div style='font-size: 2.6rem; font-weight: 600; line-height: 1.1;'>{value}</div>"
-            f"{badge_html}",
+            f"<div style='text-align: center; padding: 4px 0 8px 0;'>"
+            f"<div style='font-size: 0.95rem; font-weight: 600; margin-bottom: 4px;'>{title}</div>"
+            f"<div style='font-size: 2.1rem; font-weight: 600; line-height: 1.1;'>{value}</div>"
+            f"{badge_html}"
+            f"</div>",
             unsafe_allow_html=True,
         )
         text_col.markdown(text)
