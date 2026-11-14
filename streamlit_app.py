@@ -87,12 +87,24 @@ fig.update_traces(
   ),
 )
 
+low = table.min().min()
+high = table.max().max()
+low_log = np.log10(max(low, 1))
+high_log = np.log10(high)
+
+ticks = [low_log]
+labels = [f"{low:,.0f}"]
+for p in range(0, 10):
+    if low_log + 0.15 < p < high_log - 0.15:
+        ticks.append(p)
+        labels.append(f"{10**p:,}")
+ticks.append(high_log)
+labels.append(f"{high:,.0f}")
+
 fig.update_coloraxes(
-  colorbar={
-    "title": "Hot Spots",
-    "tickvals": [0, 1, 2, 3, 4],
-    "ticktext": ["1", "10", "100", "1,000", "10,000"],
-  }
+  cmin=low_log,
+  cmax=high_log,
+  colorbar={"title": "Hot Spots", "tickvals": ticks, "ticktext": labels},
 )
 
 fig.update_xaxes(showgrid=False)
