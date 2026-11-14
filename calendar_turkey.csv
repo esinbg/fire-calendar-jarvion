@@ -1,139 +1,139 @@
 year,month,hotspots,lower,upper,source,confidence,note
-2000,11,1574,1574,1574,MODIS_converted,low,Converted from MODIS; Terra only
-2000,12,81,81,81,MODIS_converted,low,Converted from MODIS; Terra only
-2001,1,152,152,152,MODIS_converted,low,Converted from MODIS; Terra only
-2001,2,128,128,128,MODIS_converted,low,Converted from MODIS; Terra only
-2001,3,341,341,341,MODIS_converted,low,Converted from MODIS; Terra only
-2001,4,172,172,172,MODIS_converted,low,Converted from MODIS; Terra only
-2001,5,699,699,699,MODIS_converted,low,Converted from MODIS; Terra only
-2001,6,1821,1821,1821,MODIS_converted,low,Converted from MODIS; Terra only
-2001,7,1416,1416,1416,MODIS_converted,low,Converted from MODIS; Terra only
-2001,8,2797,2797,2797,MODIS_converted,low,Converted from MODIS; Terra only
-2001,9,5399,5399,5399,MODIS_converted,low,Converted from MODIS; Terra only
-2001,10,3622,3622,3622,MODIS_converted,low,Converted from MODIS; Terra only
-2001,11,747,747,747,MODIS_converted,low,Converted from MODIS; Terra only
-2001,12,3,3,3,MODIS_converted,low,Converted from MODIS; Terra only
-2002,1,37,37,37,MODIS_converted,low,Converted from MODIS; Terra only
-2002,2,152,152,152,MODIS_converted,low,Converted from MODIS; Terra only
-2002,3,189,189,189,MODIS_converted,low,Converted from MODIS; Terra only
-2002,4,240,240,240,MODIS_converted,low,Converted from MODIS; Terra only
-2002,5,514,514,514,MODIS_converted,low,Converted from MODIS; Terra only
-2002,6,2943,2943,2943,MODIS_converted,low,Converted from MODIS; Terra only
-2002,7,3135,3135,3135,MODIS_converted,medium,Converted from MODIS
-2002,8,4598,4598,4598,MODIS_converted,medium,Converted from MODIS
-2002,9,6112,6112,6112,MODIS_converted,medium,Converted from MODIS
-2002,10,3439,3439,3439,MODIS_converted,medium,Converted from MODIS
-2002,11,1669,1669,1669,MODIS_converted,medium,Converted from MODIS
-2002,12,115,115,115,MODIS_converted,medium,Converted from MODIS
-2003,1,122,122,122,MODIS_converted,medium,Converted from MODIS
-2003,2,30,30,30,MODIS_converted,medium,Converted from MODIS
-2003,3,615,615,615,MODIS_converted,medium,Converted from MODIS
-2003,4,534,534,534,MODIS_converted,medium,Converted from MODIS
-2003,5,807,807,807,MODIS_converted,medium,Converted from MODIS
-2003,6,7581,7581,7581,MODIS_converted,medium,Converted from MODIS
-2003,7,3010,3010,3010,MODIS_converted,medium,Converted from MODIS
-2003,8,2932,2932,2932,MODIS_converted,medium,Converted from MODIS
-2003,9,4770,4770,4770,MODIS_converted,medium,Converted from MODIS
-2003,10,2878,2878,2878,MODIS_converted,medium,Converted from MODIS
-2003,11,2426,2426,2426,MODIS_converted,medium,Converted from MODIS
-2003,12,101,101,101,MODIS_converted,medium,Converted from MODIS
-2004,1,7,7,7,MODIS_converted,medium,Converted from MODIS
-2004,2,233,233,233,MODIS_converted,medium,Converted from MODIS
-2004,3,818,818,818,MODIS_converted,medium,Converted from MODIS
-2004,4,568,568,568,MODIS_converted,medium,Converted from MODIS
-2004,5,713,713,713,MODIS_converted,medium,Converted from MODIS
-2004,6,3838,3838,3838,MODIS_converted,medium,Converted from MODIS
-2004,7,1807,1807,1807,MODIS_converted,medium,Converted from MODIS
-2004,8,3139,3139,3139,MODIS_converted,medium,Converted from MODIS
-2004,9,7615,7615,7615,MODIS_converted,medium,Converted from MODIS
-2004,10,5128,5128,5128,MODIS_converted,medium,Converted from MODIS
-2004,11,2182,2182,2182,MODIS_converted,medium,Converted from MODIS
-2004,12,416,416,416,MODIS_converted,medium,Converted from MODIS
-2005,1,277,277,277,MODIS_converted,medium,Converted from MODIS
-2005,2,253,253,253,MODIS_converted,medium,Converted from MODIS
-2005,3,534,534,534,MODIS_converted,medium,Converted from MODIS
-2005,4,473,473,473,MODIS_converted,medium,Converted from MODIS
-2005,5,764,764,764,MODIS_converted,medium,Converted from MODIS
-2005,6,5514,5514,5514,MODIS_converted,medium,Converted from MODIS
-2005,7,2902,2902,2902,MODIS_converted,medium,Converted from MODIS
-2005,8,3439,3439,3439,MODIS_converted,medium,Converted from MODIS
-2005,9,6943,6943,6943,MODIS_converted,medium,Converted from MODIS
-2005,10,4426,4426,4426,MODIS_converted,medium,Converted from MODIS
-2005,11,1507,1507,1507,MODIS_converted,medium,Converted from MODIS
-2005,12,764,764,764,MODIS_converted,medium,Converted from MODIS
-2006,1,101,101,101,MODIS_converted,medium,Converted from MODIS
-2006,2,193,193,193,MODIS_converted,medium,Converted from MODIS
-2006,3,473,473,473,MODIS_converted,medium,Converted from MODIS
-2006,4,311,311,311,MODIS_converted,medium,Converted from MODIS
-2006,5,1091,1091,1091,MODIS_converted,medium,Converted from MODIS
-2006,6,5622,5622,5622,MODIS_converted,medium,Converted from MODIS
-2006,7,3189,3189,3189,MODIS_converted,medium,Converted from MODIS
-2006,8,7970,7970,7970,MODIS_converted,medium,Converted from MODIS
-2006,9,7304,7304,7304,MODIS_converted,medium,Converted from MODIS
-2006,10,2655,2655,2655,MODIS_converted,medium,Converted from MODIS
-2006,11,1919,1919,1919,MODIS_converted,medium,Converted from MODIS
-2006,12,848,848,848,MODIS_converted,medium,Converted from MODIS
-2007,1,260,260,260,MODIS_converted,medium,Converted from MODIS
-2007,2,169,169,169,MODIS_converted,medium,Converted from MODIS
-2007,3,652,652,652,MODIS_converted,medium,Converted from MODIS
-2007,4,689,689,689,MODIS_converted,medium,Converted from MODIS
-2007,5,611,611,611,MODIS_converted,medium,Converted from MODIS
-2007,6,5966,5966,5966,MODIS_converted,medium,Converted from MODIS
-2007,7,4017,4017,4017,MODIS_converted,medium,Converted from MODIS
-2007,8,4128,4128,4128,MODIS_converted,medium,Converted from MODIS
-2007,9,8091,8091,8091,MODIS_converted,medium,Converted from MODIS
-2007,10,3412,3412,3412,MODIS_converted,medium,Converted from MODIS
-2007,11,875,875,875,MODIS_converted,medium,Converted from MODIS
-2007,12,571,571,571,MODIS_converted,medium,Converted from MODIS
-2008,1,385,385,385,MODIS_converted,medium,Converted from MODIS
-2008,2,314,314,314,MODIS_converted,medium,Converted from MODIS
-2008,3,375,375,375,MODIS_converted,medium,Converted from MODIS
-2008,4,260,260,260,MODIS_converted,medium,Converted from MODIS
-2008,5,794,794,794,MODIS_converted,medium,Converted from MODIS
-2008,6,4439,4439,4439,MODIS_converted,medium,Converted from MODIS
-2008,7,2223,2223,2223,MODIS_converted,medium,Converted from MODIS
-2008,8,2514,2514,2514,MODIS_converted,medium,Converted from MODIS
-2008,9,4747,4747,4747,MODIS_converted,medium,Converted from MODIS
-2008,10,2568,2568,2568,MODIS_converted,medium,Converted from MODIS
-2008,11,1436,1436,1436,MODIS_converted,medium,Converted from MODIS
-2008,12,449,449,449,MODIS_converted,medium,Converted from MODIS
-2009,1,561,561,561,MODIS_converted,medium,Converted from MODIS
-2009,2,159,159,159,MODIS_converted,medium,Converted from MODIS
-2009,3,321,321,321,MODIS_converted,medium,Converted from MODIS
-2009,4,389,389,389,MODIS_converted,medium,Converted from MODIS
-2009,5,929,929,929,MODIS_converted,medium,Converted from MODIS
-2009,6,8166,8166,8166,MODIS_converted,medium,Converted from MODIS
-2009,7,6865,6865,6865,MODIS_converted,medium,Converted from MODIS
-2009,8,14530,14530,14530,MODIS_converted,medium,Converted from MODIS
-2009,9,17220,17220,17220,MODIS_converted,medium,Converted from MODIS
-2009,10,14561,14561,14561,MODIS_converted,medium,Converted from MODIS
-2009,11,2834,2834,2834,MODIS_converted,medium,Converted from MODIS
-2009,12,642,642,642,MODIS_converted,medium,Converted from MODIS
-2010,1,297,297,297,MODIS_converted,medium,Converted from MODIS
-2010,2,443,443,443,MODIS_converted,medium,Converted from MODIS
-2010,3,1338,1338,1338,MODIS_converted,medium,Converted from MODIS
-2010,4,818,818,818,MODIS_converted,medium,Converted from MODIS
-2010,5,1260,1260,1260,MODIS_converted,medium,Converted from MODIS
-2010,6,7321,7321,7321,MODIS_converted,medium,Converted from MODIS
-2010,7,5490,5490,5490,MODIS_converted,medium,Converted from MODIS
-2010,8,9899,9899,9899,MODIS_converted,medium,Converted from MODIS
-2010,9,9787,9787,9787,MODIS_converted,medium,Converted from MODIS
-2010,10,4196,4196,4196,MODIS_converted,medium,Converted from MODIS
-2010,11,4362,4362,4362,MODIS_converted,medium,Converted from MODIS
-2010,12,642,642,642,MODIS_converted,medium,Converted from MODIS
-2011,1,101,101,101,MODIS_converted,medium,Converted from MODIS
-2011,2,199,199,199,MODIS_converted,medium,Converted from MODIS
-2011,3,399,399,399,MODIS_converted,medium,Converted from MODIS
-2011,4,301,301,301,MODIS_converted,medium,Converted from MODIS
-2011,5,571,571,571,MODIS_converted,medium,Converted from MODIS
-2011,6,6226,6226,6226,MODIS_converted,medium,Converted from MODIS
-2011,7,4601,4601,4601,MODIS_converted,medium,Converted from MODIS
-2011,8,10416,10416,10416,MODIS_converted,medium,Converted from MODIS
-2011,9,19304,19304,19304,MODIS_converted,medium,Converted from MODIS
-2011,10,12463,12463,12463,MODIS_converted,medium,Converted from MODIS
-2011,11,4804,4804,4804,MODIS_converted,medium,Converted from MODIS
-2011,12,2764,2764,2764,MODIS_converted,medium,Converted from MODIS
-2012,1,57,57,57,VIIRS_SNPP,medium,Partial month
+2000,11,3175,1646,5848,MODIS_converted,low,Converted from MODIS; Terra only
+2000,12,355,184,654,MODIS_converted,low,Converted from MODIS; Terra only
+2001,1,656,340,1208,MODIS_converted,low,Converted from MODIS; Terra only
+2001,2,337,175,622,MODIS_converted,low,Converted from MODIS; Terra only
+2001,3,878,455,1618,MODIS_converted,low,Converted from MODIS; Terra only
+2001,4,349,181,642,MODIS_converted,low,Converted from MODIS; Terra only
+2001,5,599,311,1104,MODIS_converted,low,Converted from MODIS; Terra only
+2001,6,1642,1343,2222,MODIS_converted,low,Converted from MODIS; Terra only
+2001,7,2227,1822,3013,MODIS_converted,low,Converted from MODIS; Terra only
+2001,8,7489,6127,10134,MODIS_converted,low,Converted from MODIS; Terra only
+2001,9,16362,13386,22141,MODIS_converted,low,Converted from MODIS; Terra only
+2001,10,9168,7500,12406,MODIS_converted,low,Converted from MODIS; Terra only
+2001,11,1506,781,2774,MODIS_converted,low,Converted from MODIS; Terra only
+2001,12,15,8,27,MODIS_converted,low,Converted from MODIS; Terra only
+2002,1,160,83,295,MODIS_converted,low,Converted from MODIS; Terra only
+2002,2,400,207,736,MODIS_converted,low,Converted from MODIS; Terra only
+2002,3,487,253,897,MODIS_converted,low,Converted from MODIS; Terra only
+2002,4,485,252,894,MODIS_converted,low,Converted from MODIS; Terra only
+2002,5,440,228,811,MODIS_converted,low,Converted from MODIS; Terra only
+2002,6,2653,2170,3590,MODIS_converted,low,Converted from MODIS; Terra only
+2002,7,2932,2491,3776,MODIS_converted,medium,Converted from MODIS
+2002,8,5980,5081,7701,MODIS_converted,medium,Converted from MODIS
+2002,9,8631,7333,11115,MODIS_converted,medium,Converted from MODIS
+2002,10,3985,3385,5131,MODIS_converted,medium,Converted from MODIS
+2002,11,1259,904,1874,MODIS_converted,medium,Converted from MODIS
+2002,12,103,74,153,MODIS_converted,medium,Converted from MODIS
+2003,1,111,80,166,MODIS_converted,medium,Converted from MODIS
+2003,2,27,20,41,MODIS_converted,medium,Converted from MODIS
+2003,3,651,467,970,MODIS_converted,medium,Converted from MODIS
+2003,4,586,421,873,MODIS_converted,medium,Converted from MODIS
+2003,5,434,312,647,MODIS_converted,medium,Converted from MODIS
+2003,6,4776,4057,6150,MODIS_converted,medium,Converted from MODIS
+2003,7,2815,2392,3626,MODIS_converted,medium,Converted from MODIS
+2003,8,3814,3240,4912,MODIS_converted,medium,Converted from MODIS
+2003,9,6736,5723,8675,MODIS_converted,medium,Converted from MODIS
+2003,10,3335,2833,4295,MODIS_converted,medium,Converted from MODIS
+2003,11,1829,1314,2724,MODIS_converted,medium,Converted from MODIS
+2003,12,90,65,135,MODIS_converted,medium,Converted from MODIS
+2004,1,6,4,9,MODIS_converted,medium,Converted from MODIS
+2004,2,209,150,311,MODIS_converted,medium,Converted from MODIS
+2004,3,866,622,1289,MODIS_converted,medium,Converted from MODIS
+2004,4,623,447,928,MODIS_converted,medium,Converted from MODIS
+2004,5,384,275,571,MODIS_converted,medium,Converted from MODIS
+2004,6,2418,2054,3113,MODIS_converted,medium,Converted from MODIS
+2004,7,1690,1436,2177,MODIS_converted,medium,Converted from MODIS
+2004,8,4082,3468,5257,MODIS_converted,medium,Converted from MODIS
+2004,9,10754,9136,13849,MODIS_converted,medium,Converted from MODIS
+2004,10,5942,5048,7652,MODIS_converted,medium,Converted from MODIS
+2004,11,1646,1182,2451,MODIS_converted,medium,Converted from MODIS
+2004,12,371,266,552,MODIS_converted,medium,Converted from MODIS
+2005,1,254,182,378,MODIS_converted,medium,Converted from MODIS
+2005,2,227,163,338,MODIS_converted,medium,Converted from MODIS
+2005,3,565,406,842,MODIS_converted,medium,Converted from MODIS
+2005,4,519,373,773,MODIS_converted,medium,Converted from MODIS
+2005,5,411,295,612,MODIS_converted,medium,Converted from MODIS
+2005,6,3473,2951,4473,MODIS_converted,medium,Converted from MODIS
+2005,7,2714,2306,3495,MODIS_converted,medium,Converted from MODIS
+2005,8,4473,3800,5761,MODIS_converted,medium,Converted from MODIS
+2005,9,9804,8330,12626,MODIS_converted,medium,Converted from MODIS
+2005,10,5128,4356,6603,MODIS_converted,medium,Converted from MODIS
+2005,11,1136,816,1692,MODIS_converted,medium,Converted from MODIS
+2005,12,681,489,1015,MODIS_converted,medium,Converted from MODIS
+2006,1,93,67,138,MODIS_converted,medium,Converted from MODIS
+2006,2,172,124,257,MODIS_converted,medium,Converted from MODIS
+2006,3,501,360,746,MODIS_converted,medium,Converted from MODIS
+2006,4,341,245,508,MODIS_converted,medium,Converted from MODIS
+2006,5,587,422,874,MODIS_converted,medium,Converted from MODIS
+2006,6,3541,3009,4561,MODIS_converted,medium,Converted from MODIS
+2006,7,2983,2534,3841,MODIS_converted,medium,Converted from MODIS
+2006,8,10365,8807,13349,MODIS_converted,medium,Converted from MODIS
+2006,9,10315,8764,13283,MODIS_converted,medium,Converted from MODIS
+2006,10,3077,2614,3962,MODIS_converted,medium,Converted from MODIS
+2006,11,1447,1039,2155,MODIS_converted,medium,Converted from MODIS
+2006,12,757,543,1127,MODIS_converted,medium,Converted from MODIS
+2007,1,238,171,355,MODIS_converted,medium,Converted from MODIS
+2007,2,151,109,225,MODIS_converted,medium,Converted from MODIS
+2007,3,690,496,1028,MODIS_converted,medium,Converted from MODIS
+2007,4,757,543,1127,MODIS_converted,medium,Converted from MODIS
+2007,5,329,236,490,MODIS_converted,medium,Converted from MODIS
+2007,6,3758,3193,4840,MODIS_converted,medium,Converted from MODIS
+2007,7,3757,3192,4838,MODIS_converted,medium,Converted from MODIS
+2007,8,5369,4562,6915,MODIS_converted,medium,Converted from MODIS
+2007,9,11426,9708,14715,MODIS_converted,medium,Converted from MODIS
+2007,10,3953,3359,5091,MODIS_converted,medium,Converted from MODIS
+2007,11,660,474,983,MODIS_converted,medium,Converted from MODIS
+2007,12,510,366,759,MODIS_converted,medium,Converted from MODIS
+2008,1,353,253,526,MODIS_converted,medium,Converted from MODIS
+2008,2,281,202,419,MODIS_converted,medium,Converted from MODIS
+2008,3,397,285,591,MODIS_converted,medium,Converted from MODIS
+2008,4,286,205,425,MODIS_converted,medium,Converted from MODIS
+2008,5,427,307,636,MODIS_converted,medium,Converted from MODIS
+2008,6,2796,2376,3601,MODIS_converted,medium,Converted from MODIS
+2008,7,2079,1766,2677,MODIS_converted,medium,Converted from MODIS
+2008,8,3269,2777,4210,MODIS_converted,medium,Converted from MODIS
+2008,9,6703,5695,8632,MODIS_converted,medium,Converted from MODIS
+2008,10,2975,2527,3831,MODIS_converted,medium,Converted from MODIS
+2008,11,1083,778,1613,MODIS_converted,medium,Converted from MODIS
+2008,12,401,288,597,MODIS_converted,medium,Converted from MODIS
+2009,1,514,369,765,MODIS_converted,medium,Converted from MODIS
+2009,2,142,102,212,MODIS_converted,medium,Converted from MODIS
+2009,3,340,244,506,MODIS_converted,medium,Converted from MODIS
+2009,4,427,306,635,MODIS_converted,medium,Converted from MODIS
+2009,5,500,359,745,MODIS_converted,medium,Converted from MODIS
+2009,6,5144,4370,6624,MODIS_converted,medium,Converted from MODIS
+2009,7,6420,5455,8268,MODIS_converted,medium,Converted from MODIS
+2009,8,18898,16056,24338,MODIS_converted,medium,Converted from MODIS
+2009,9,24317,20660,31316,MODIS_converted,medium,Converted from MODIS
+2009,10,16870,14333,21726,MODIS_converted,medium,Converted from MODIS
+2009,11,2138,1535,3184,MODIS_converted,medium,Converted from MODIS
+2009,12,573,411,853,MODIS_converted,medium,Converted from MODIS
+2010,1,272,196,406,MODIS_converted,medium,Converted from MODIS
+2010,2,396,285,590,MODIS_converted,medium,Converted from MODIS
+2010,3,1416,1017,2110,MODIS_converted,medium,Converted from MODIS
+2010,4,898,645,1337,MODIS_converted,medium,Converted from MODIS
+2010,5,678,487,1010,MODIS_converted,medium,Converted from MODIS
+2010,6,4612,3918,5939,MODIS_converted,medium,Converted from MODIS
+2010,7,5134,4362,6612,MODIS_converted,medium,Converted from MODIS
+2010,8,12874,10938,16580,MODIS_converted,medium,Converted from MODIS
+2010,9,13821,11743,17799,MODIS_converted,medium,Converted from MODIS
+2010,10,4861,4130,6261,MODIS_converted,medium,Converted from MODIS
+2010,11,3289,2362,4899,MODIS_converted,medium,Converted from MODIS
+2010,12,573,411,853,MODIS_converted,medium,Converted from MODIS
+2011,1,93,67,138,MODIS_converted,medium,Converted from MODIS
+2011,2,178,128,266,MODIS_converted,medium,Converted from MODIS
+2011,3,422,303,629,MODIS_converted,medium,Converted from MODIS
+2011,4,330,237,492,MODIS_converted,medium,Converted from MODIS
+2011,5,307,221,458,MODIS_converted,medium,Converted from MODIS
+2011,6,3922,3332,5051,MODIS_converted,medium,Converted from MODIS
+2011,7,4303,3656,5542,MODIS_converted,medium,Converted from MODIS
+2011,8,13547,11509,17446,MODIS_converted,medium,Converted from MODIS
+2011,9,27261,23161,35107,MODIS_converted,medium,Converted from MODIS
+2011,10,14439,12268,18595,MODIS_converted,medium,Converted from MODIS
+2011,11,3623,2602,5396,MODIS_converted,medium,Converted from MODIS
+2011,12,2466,1771,3673,MODIS_converted,medium,Converted from MODIS
+2012,1,152,109,226,MODIS_converted,medium,Converted from MODIS
 2012,2,319,319,319,VIIRS_SNPP,high,
 2012,3,1347,1347,1347,VIIRS_SNPP,high,
 2012,4,2409,2409,2409,VIIRS_SNPP,high,
