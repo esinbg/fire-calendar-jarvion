@@ -183,7 +183,8 @@ else:
         cmax=3,
         colorbar={"title": "Hot Spots", "tickvals": [0, 1, 2, 3],
                   "ticktext": ["1", "10", "100", "1,000+"]},
-    )    fig_map.update_layout(
+    )   
+    fig_map.update_layout(
         margin={"l": 0, "r": 0, "t": 0, "b": 0},
         paper_bgcolor="rgba(0,0,0,0)",
         font_color="#FAFAFA",
