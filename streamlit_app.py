@@ -66,3 +66,26 @@ st.plotly_chart(fig, theme=None)
 
 st.caption("Colour uses a logarithmic scale. Grey cells have no data.")
 
+st.subheader("Selected month vs. other years")
+
+latest = df.iloc[-1]
+c1, c2 = st.columns(2)
+sel_year = c1.selectbox("Year", sorted(df["year"].unique(), reverse=True))
+month_name = c2.selectbox("Month", MONTHS, index=int(latest["month"]) - 1)
+sel_month = MONTHS.index(month_name) + 1
+
+same_month = df[df["month"] == sel_month]
+row = same_month[same_month["year"] == sel_year]
+others = same_month[same_month["year"] != sel_year]
+median = others["hotspots"].median()
+
+if row.empty:
+    st.info("No data for this month.")
+else:
+    current = row["hotspots"].iloc[0]
+    change = (current - median) / median * 100
+    m1, m2, m3 = st.columns(3)
+    m1.metric(f"{month_name} {sel_year}", f"{current:,.0f}", f"{change:+.0f}% vs. median", delta_color="inverse", border=True)
+    m2.metric(f"Median of other years ({month_name})", f"{median:,.0f}", border=True)
+    m3.metric("Confidence", row["confidence"].iloc[0].capitalize(), border=True)
+    st.caption(f"Range: {row['lower'].iloc[0]:,.0f} to {row['upper'].iloc[0]:,.0f}. {row['note'].iloc[0]}")
