@@ -257,7 +257,7 @@ def info_card(value, title, text, badge="", badge_color="#FF6B6B"):
                 f"border-radius: 12px; background: {badge_color}33; color: {badge_color}; "
                 f"font-size: 0.95rem;'>{badge}</div>"
             )
-         num_col.markdown(
+        num_col.markdown(
             f"<div style='font-size: 1rem; font-weight: 600; margin-bottom: 4px;'>{title}</div>"
             f"<div style='font-size: 2.6rem; font-weight: 600; line-height: 1.1;'>{value}</div>"
             f"{badge_html}",
