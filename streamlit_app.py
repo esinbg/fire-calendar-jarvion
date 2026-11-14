@@ -29,7 +29,7 @@ st.subheader("Burning Activity Calendar")
 
 fig = px.imshow(
   colors,
-  color_continuous_scale="Inferno",
+  color_continuous_scale="YlOrRd",
   labels={"x": "Month", "y": "Year", "color": "Hot Spots"},
  aspect="auto",
 )
@@ -55,9 +55,9 @@ fig.update_coloraxes(
 )
 
 fig.update_yaxes(dtick=1)
-fig.update_layout(height=750, plot_bgcolor="#E0E0E0")
+fig.update_layout(height=750, plot_bgcolor="#BDBDBD")
 
-st.plotly_chart(fig)
+st.plotly_chart(fig, theme=None)
 
 st.caption("Colour uses a logarithmic scale. Grey cells have no data.")
 
