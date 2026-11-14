@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import numpy as np
 import json
 import os
@@ -182,13 +183,13 @@ else:
              "color": "#FFD54F", "line": {"width": 3}}
         )
     fig_map.update_layout(map={"layers": border_layers})
-    ###### Fixed colour scale for the map: 1 to 1,000 hot spots per cell
+    # Fixed colour scale for the map: 1 to 1,000 hot spots per cell
     fig_map.update_coloraxes(
         cmin=0,
         cmax=3,
         colorbar={"title": "Hot Spots", "tickvals": [0, 1, 2, 3],
                   "ticktext": ["1", "10", "100", "1,000+"]},
-    )   
+    )
     fig_map.update_layout(
         margin={"l": 0, "r": 0, "t": 0, "b": 0},
         paper_bgcolor="rgba(0,0,0,0)",
@@ -225,12 +226,26 @@ else:
     if details_text:
         st.caption(details_text)
 
+# Change between two periods: average yearly hot spots
+yearly_total = monthly.groupby("year")["hotspots"].sum()
+early = yearly_total.loc[2003:2011].mean()
+late = yearly_total.loc[2017:2025].mean()
+if early > 0:
+    period_change = (late - early) / early * 100
+    st.metric(
+        "Average yearly hot spots, 2017-2025 vs. 2003-2011",
+        f"{period_change:+.0f}%",
+        help=f"2003-2011: {early:,.0f} per year. 2017-2025: {late:,.0f} per year.",
+        border=True,
+    )
+
 # ---------- 6. Calendar ----------
 st.subheader("Burning activity calendar")
 
 y_min, y_max = int(df["year"].min()), int(df["year"].max())
 start_year, end_year = st.slider("Years", y_min, y_max, (y_min, y_max))
 cal_data = monthly[(monthly["year"] >= start_year) & (monthly["year"] <= end_year)]
+
 
 def grid(column):
     t = cal_data.pivot(index="year", columns="month", values=column)
@@ -264,7 +279,7 @@ fig.update_traces(
     ),
 )
 
-#### Fixed colour scale: the same colours mean the same numbers in every region
+# Fixed colour scale: the same colours mean the same numbers in every region
 CAL_TICKS = [0, 500, 2000, 5000, 10000, 20000]
 fig.update_coloraxes(
     cmin=0,
@@ -273,6 +288,7 @@ fig.update_coloraxes(
               "tickvals": [np.sqrt(v) for v in CAL_TICKS],
               "ticktext": [f"{v:,}" for v in CAL_TICKS]},
 )
+
 fig.update_xaxes(showgrid=False)
 fig.update_yaxes(dtick=1, showgrid=False)
 
@@ -286,4 +302,49 @@ fig.update_layout(
 with st.container(key="calendar"):
     st.plotly_chart(fig, theme=None)
 
-st.caption(f"{region}, {start_year}-{end_year}. Colour uses a square-root scale. Grey cells have no data.") 
+st.caption(f"{region}, {start_year}-{end_year}. Colour uses a square-root scale. Grey cells have no data.")
+
+csv_text = cal_data[["year", "month", "hotspots", "lower", "upper", "source", "confidence", "note"]].to_csv(index=False)
+st.download_button(
+    label="Download this table (CSV)",
+    data=csv_text,
+    file_name=f"burning_activity_{region.replace(' ', '_')}_{start_year}-{end_year}.csv",
+    mime="text/csv",
+)
+
+# ---------- 7. Season profile ----------
+st.subheader("Season profile")
+
+profile = monthly[monthly["year"] != sel_year].groupby("month")["hotspots"]
+p_median = profile.median().reindex(range(1, 13))
+p_low = profile.quantile(0.1).reindex(range(1, 13))
+p_high = profile.quantile(0.9).reindex(range(1, 13))
+this_year = monthly[monthly["year"] == sel_year].set_index("month")["hotspots"].reindex(range(1, 13))
+
+fig_season = go.Figure()
+fig_season.add_trace(go.Scatter(x=MONTHS, y=p_high, line={"width": 0}, showlegend=False, hoverinfo="skip"))
+fig_season.add_trace(go.Scatter(x=MONTHS, y=p_low, fill="tonexty", fillcolor="rgba(253,141,60,0.25)",
+                                line={"width": 0}, name="Normal range (10-90%)", hoverinfo="skip"))
+fig_season.add_trace(go.Scatter(x=MONTHS, y=p_median, name="Median of other years",
+                                line={"color": "#FD8D3C", "width": 2, "dash": "dash"}))
+fig_season.add_trace(go.Scatter(x=MONTHS, y=this_year, name=str(sel_year),
+                                line={"color": "#FAFAFA", "width": 3}, mode="lines+markers"))
+fig_season.update_layout(
+    height=400,
+    yaxis_title="Hot spots",
+    hovermode="x unified",
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    font_color="#FAFAFA",
+    legend={"orientation": "h", "y": -0.15},
+)
+st.plotly_chart(fig_season, theme=None)
+st.caption(f"{region}. Shaded band: 80% of the other years fall inside it.")
+
+# ---------- 8. Method ----------
+with st.expander("Method"):
+    st.write(
+        "MODIS counts (2000-2011) are converted to VIIRS-equivalent counts using "
+        "month-specific factors derived from the 14-year overlap (2012-2025). "
+        "Leave-one-year-out validation: 13% monthly error, 4% yearly error."
+    )
