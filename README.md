@@ -63,4 +63,4 @@ We used Claude (Anthropic) as an assistant. For the web app, it generated and ex
 
 ## License
 
-[MIT License, see `LICENSE`]
+MIT License, see `LICENSE` 
