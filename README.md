@@ -41,7 +41,6 @@ MODIS counts (2000-2011) are converted to VIIRS-equivalent counts using month-sp
 | `november_1_12.csv` | First 12 days of November in every year, by region (for partial-month comparison) |
 | `regions_turkey.geojson` | Borders of the seven geographic regions (map lines only) |
 | `data_processing/` | Google Colab notebook: FIRMS data processing and MODIS-to-VIIRS harmonization |
-| `docs/` | Project report and presentation |
 
 ## Run locally
 
